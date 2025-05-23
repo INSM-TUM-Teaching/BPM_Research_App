@@ -1,0 +1,9 @@
+*
+!src
+!*.bash
+!*.sh
+!LICENSE
+!*.toml
+!*.ini
+!*.md
+!*.txt
