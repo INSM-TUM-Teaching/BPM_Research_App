@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-# BPM_Research_App
-=======
 # Simod: Automated discovery of business process simulation models
 
 ![Simod](https://github.com/AutomatedProcessImprovement/Simod/actions/workflows/simod.yml/badge.svg)
@@ -120,4 +117,3 @@ poetry run pytest -m "not integration" --cov=simod
 
 For more details about the installation, usage, and implementation **visit the documentation here:**  
 📖 ️ [https://simod.readthedocs.io/en/latest/](https://simod.readthedocs.io/en/latest/)
->>>>>>> master
