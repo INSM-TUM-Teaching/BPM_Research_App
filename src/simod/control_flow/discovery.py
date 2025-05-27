@@ -140,12 +140,11 @@ def add_bpmn_diagram_to_model(bpmn_model_path: Path):
     """
     global bpmn_layout_jar_path
 
-    args = [
-        "java",
-        "-jar",
-        '"' + str(bpmn_layout_jar_path) + '"',
-        '"' + str(bpmn_model_path) + '"'
-    ]
+    if is_windows():
+        args = ["java", "-jar", '"' + str(bpmn_layout_jar_path) + '"', '"' + str(bpmn_model_path) + '"']
+    else:
+        args = ["java", "-jar", str(bpmn_layout_jar_path), str(bpmn_model_path)]
+
     print_step(f"Adding BPMN diagram to the model: {args}")
     execute_external_command(args)
 
