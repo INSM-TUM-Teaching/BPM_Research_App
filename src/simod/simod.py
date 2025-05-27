@@ -30,6 +30,7 @@ from simod.resource_model.optimizer import ResourceModelOptimizer
 from simod.resource_model.repair import repair_with_missing_activities
 from simod.resource_model.settings import HyperoptIterationParams as ResourceModelHyperoptIterationParams
 from simod.runtime_meter import RuntimeMeter
+from simod.settings.control_flow_settings import ProcessModelDiscoveryAlgorithm
 from simod.settings.simod_settings import SimodSettings
 from simod.simulation.parameters.BPS_model import BPSModel
 from simod.simulation.prosimos import simulate_and_evaluate
@@ -213,7 +214,10 @@ class Simod:
             )
             # Instantiate event log to discover the process model with
             xes_log_path = self._best_result_dir / f"{self._event_log.process_name}_train_val.xes"
-            self._event_log.train_validation_to_xes(xes_log_path)
+            if best_control_flow_params.mining_algorithm is ProcessModelDiscoveryAlgorithm.SPLIT_MINER_V1:
+                self._event_log.train_validation_to_xes(xes_log_path, only_complete_events=True)
+            else:
+                self._event_log.train_validation_to_xes(xes_log_path)
             # Discover the process model
             discover_process_model(
                 log_path=xes_log_path,
