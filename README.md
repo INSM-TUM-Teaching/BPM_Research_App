@@ -1,4 +1,4 @@
-# Augmenting an Automated ML-based Simulation Discovery Tool with Human Expertise
+# Topic 3: Augmenting an Automated ML-based Simulation Discovery Tool with Human Expertise
 
 # Simod: Automated discovery of business process simulation models
 
