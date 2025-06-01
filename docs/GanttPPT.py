@@ -21,15 +21,20 @@ for task in tasks:
     task["Start"] = datetime.strptime(task["Start"], "%Y-%m-%d")
     task["End"] = task["Start"] + timedelta(days=task["Duration"])
 
-# Custom RGB color
-custom_color = (56/255, 116/255, 180/255)
+# Colors
+custom_blue = (56/255, 116/255, 180/255)       # TUM blue
+light_blue = (156/255, 186/255, 218/255)      
+
+# Cutoff date
+cutoff_date = datetime.strptime("2025-06-03", "%Y-%m-%d")
 
 # Create the plot
 fig, ax = plt.subplots(figsize=(12, 6))
 
-# Plot tasks
+# Plot tasks with conditional colors
 for task in tasks:
-    ax.barh(task["Task"], task["Duration"], left=task["Start"], color=custom_color)
+    color = light_blue if task["Start"] < cutoff_date else custom_blue
+    ax.barh(task["Task"], task["Duration"], left=task["Start"], color=color)
 
 # Format date axis
 ax.xaxis.set_major_locator(mdates.WeekdayLocator(interval=7))
@@ -47,7 +52,6 @@ ax.set_ylabel("Tasks", fontsize=14, fontweight='bold')
 # Add vertical line for June 3, 2025 - Presentation Date (light grey)
 presentation_date = datetime.strptime("2025-06-03", "%Y-%m-%d")
 ax.axvline(presentation_date, color="#0656DFAA", linestyle='--', linewidth=2)
-ax.text(presentation_date, -0.12, "", color="#0656DFAA", fontsize=10, fontweight='bold', ha='center')
 
 # Layout and grid
 plt.tight_layout()

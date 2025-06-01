@@ -95,6 +95,9 @@ of each element:
 
 ## For developers
 
+# To install package in editable mode:
+# pip install -e .
+
 ### Testing
 
 Use `pytest` to run tests on the package:
