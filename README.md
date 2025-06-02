@@ -1,5 +1,4 @@
 # Topic 3: Augmenting an Automated ML-based Simulation Discovery Tool with Human Expertise
-
 # Simod: Automated discovery of business process simulation models
 
 ![Simod](https://github.com/AutomatedProcessImprovement/Simod/actions/workflows/simod.yml/badge.svg)
