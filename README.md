@@ -95,7 +95,9 @@ of each element:
 ## For developers
 
 To install package in editable mode:
+```shell
 pip install -e .
+```
 
 ### Testing
 
