@@ -1,4 +1,3 @@
-# cli1.py (corrected and simplified)
 import sys
 from pathlib import Path
 import click
