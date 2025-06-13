@@ -103,7 +103,7 @@ def main(
     )
     runtimes.stop(RuntimeMeter.PREPROCESSING)
 
-    # Instantiate and run Simod
+    # Instantiate and run Simod Control
     control_stage = SimodControl(settings, event_log=event_log, output_dir=output)
     resume_dir = control_stage.run(runtimes=runtimes)
     # Print the final message with the correct path

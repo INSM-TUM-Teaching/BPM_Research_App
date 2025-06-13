@@ -21,7 +21,8 @@ def main(resume_dir: Path):
     if not (resume_dir / 'control-flow').exists():
         click.secho(f"Error: Invalid resume directory '{resume_dir}'. It must contain a 'control-flow' sub-directory.", fg='red')
         sys.exit(1)
-        
+
+     # Instantiate and run Simod Resource   
     resource_stage = SimodResource(resume_dir=resume_dir)
     resource_stage.run()
 
