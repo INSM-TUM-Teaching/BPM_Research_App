@@ -10,7 +10,7 @@ from typing import Dict, List, Set, Tuple
 
 from lxml import etree
 
-SRC  = Path("LoanApp_simplified_train.bpmn") 
+SRC  = Path("/Users/anisha/Downloads/BPM_Research_App/outputs/ControlFlow/control-flow/LoanApp_simplified_train.bpmn") 
 DEST = Path("output.bpmn")                     
 
 NS = {

@@ -168,7 +168,7 @@ class SimodSettings(BaseModel):
             Instance of the SIMOD configuration for the specified YAML file.
         """
         with file_path.open() as f:
-            config = yaml.safe_load(f)
+            config = yaml.load(f, Loader=yaml.FullLoader)
             return SimodSettings.from_yaml(config, config_dir=file_path.parent)
 
     def to_dict(self) -> dict:
@@ -191,7 +191,7 @@ class SimodSettings(BaseModel):
             dictionary["extraneous_activity_delays"] = self.extraneous_activity_delays.to_dict()
         return dictionary
 
-    def to_yaml(self, output_dir: Path) -> Path:
+    def to_yaml(self, output_path: Path) -> Path:
         """
         Saves the configuration to a YAML file in the provided output directory.
 
@@ -206,7 +206,9 @@ class SimodSettings(BaseModel):
             Path to the YAML file with the configuration.
         """
         data = yaml.dump(self.to_dict(), sort_keys=False)
-        output_path = output_dir / "configuration.yaml"
+        #output_path = output_dir / "configuration.yaml"
+        output_path.parent.mkdir(parents=True, exist_ok=True) 
+
         with output_path.open("w") as f:
             f.write(data)
         return output_path

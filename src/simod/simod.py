@@ -158,6 +158,9 @@ class Simod:
         print_section("Optimizing control-flow parameters")
         runtimes.start(RuntimeMeter.CONTROL_FLOW_MODEL)
         best_control_flow_params = self._optimize_control_flow()
+        print("\nBEST CONTROL-FLOW PARAMETERS FOUND:")
+        print(best_control_flow_params.to_dict())
+        print("\n")
         self._best_bps_model.process_model = self._control_flow_optimizer.best_bps_model.process_model
         self._best_bps_model.gateway_probabilities = self._control_flow_optimizer.best_bps_model.gateway_probabilities
         self._best_bps_model.branch_rules = self._control_flow_optimizer.best_bps_model.branch_rules

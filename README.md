@@ -100,6 +100,12 @@ To install package in editable mode:
 pip install -e .
 ```
 
+To run the file without simod package:
+
+```shell
+PYTHONPATH=src python -m simod.cli -c resources/config/configuration_example.yml
+```
+
 ### Testing
 
 Use `pytest` to run tests on the package:
