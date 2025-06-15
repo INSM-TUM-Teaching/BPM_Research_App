@@ -9,6 +9,7 @@ from pix_framework.filesystem.file_manager import get_random_folder_id
 from simod.event_log.event_log import EventLog
 from simod.runtime_meter import RuntimeMeter
 from simod.settings.simod_settings import SimodSettings
+from simod.simod import Simod
 from simod.simod_control import SimodControl
 
 
@@ -102,6 +103,11 @@ def main(
         need_test_partition=settings.common.perform_final_evaluation,
     )
     runtimes.stop(RuntimeMeter.PREPROCESSING)
+
+
+    # # Instantiate and run Simod
+    # simod = Simod(settings, event_log=event_log, output_dir=output)
+    # simod.run(runtimes=runtimes)
 
     # Instantiate and run Simod Control
     control_stage = SimodControl(settings, event_log=event_log, output_dir=output)

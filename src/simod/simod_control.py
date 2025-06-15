@@ -1,25 +1,41 @@
 import json
-import pickle
 import shutil
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional
+import pickle
 
+import pandas as pd
 from pix_framework.discovery.case_arrival import discover_case_arrival_model
+from pix_framework.discovery.gateway_probabilities import compute_gateway_probabilities
 from pix_framework.discovery.resource_calendar_and_performance.calendar_discovery_parameters import (
     CalendarDiscoveryParameters,
 )
 from pix_framework.discovery.resource_model import discover_resource_model
-from pix_framework.filesystem.file_manager import create_folder, get_random_folder_id
+from pix_framework.filesystem.file_manager import create_folder, get_random_folder_id, remove_asset
+from pix_framework.io.bpm_graph import BPMNGraph
 from pix_framework.io.bpmn import get_activities_names_from_bpmn
 
-from simod.cli_formatter import print_section
+from simod.batching.discovery import discover_batching_rules
+from simod.branch_rules.discovery import discover_branch_rules, map_branch_rules_to_flows
+from simod.cli_formatter import print_section, print_subsection
+from simod.control_flow.discovery import discover_process_model, add_bpmn_diagram_to_model
 from simod.control_flow.optimizer import ControlFlowOptimizer
 from simod.control_flow.settings import HyperoptIterationParams as ControlFlowHyperoptIterationParams
+from simod.data_attributes.discovery import discover_data_attributes
 from simod.event_log.event_log import EventLog
+from simod.extraneous_delays.optimizer import ExtraneousDelaysOptimizer
+from simod.extraneous_delays.types import ExtraneousDelay
+from simod.extraneous_delays.utilities import add_timers_to_bpmn_model
+from simod.prioritization.discovery import discover_prioritization_rules
+from simod.resource_model.optimizer import ResourceModelOptimizer
 from simod.resource_model.repair import repair_with_missing_activities
+from simod.resource_model.settings import HyperoptIterationParams as ResourceModelHyperoptIterationParams
 from simod.runtime_meter import RuntimeMeter
+from simod.settings.control_flow_settings import ProcessModelDiscoveryAlgorithm
 from simod.settings.simod_settings import SimodSettings
 from simod.simulation.parameters.BPS_model import BPSModel
+from simod.simulation.prosimos import simulate_and_evaluate
+from simod.utilities import get_process_model_path, get_simulation_parameters_path
 
 # --- Constants for state management between scripts ---
 INTERMEDIATE_BPMN_FILENAME = "intermediate_bpmn.bpmn"
@@ -33,14 +49,30 @@ RUNTIMES_FILENAME = "runtimes_part1.pickle"
 
 class SimodControl:
     """
-    Runs the Control-Flow discovery stage of the SIMOD pipeline.
-    It discovers an initial model and optimizes the control-flow, then saves its state for the next stage.
+    Class to run the full pipeline of SIMOD in order to discover a BPS model from an event log.
+
+    Attributes
+    ----------
+        settings : :class:`~simod.settings.simod_settings.SimodSettings`
+            Configuration to run SIMOD and all its stages.
+        event_log : :class:`~simod.event_log.event_log.EventLog`
+            EventLog class storing the preprocessed training, validation, and (optionally) test partitions.
+        output_dir : :class:`~pathlib.Path`
+            Path to the folder where to write all the SIMOD outputs.
+        final_bps_model : :class:`~simod.simulation.parameters.BPS_model.BPSModel`
+            Instance of the best BPS model discovered by SIMOD.
     """
 
+    # Event log with the train, validation and test logs.
     _event_log: EventLog
+    # Settings for all SIMOD optimization and discovery processes
     _settings: SimodSettings
+    # Best BPS model obtained from the discovery processes
     _best_bps_model: BPSModel
+    # Directory to write all the files
     _output_dir: Path
+    
+    # Optimizer for the Control-Flow and Gateway Probabilities
     _control_flow_optimizer: Optional[ControlFlowOptimizer]
 
     def __init__(
@@ -61,39 +93,48 @@ class SimodControl:
         create_folder(self._control_flow_dir)
 
     def run(self, runtimes: Optional[RuntimeMeter] = None) -> Path:
-        """
-        Executes the control-flow discovery stage and saves the state.
-        Returns the path to the output directory for the next stage to use.
-        """
-        runtimes = runtimes or RuntimeMeter()
+       
+        runtimes = RuntimeMeter() if runtimes is None else runtimes
         runtimes.start(RuntimeMeter.TOTAL)
 
+        # Model activities might be different from event log activities if the model has been provided,
+        # because we split the event log into train, test, and validation partitions.
+        # We use model_activities to repair resource_model later after its discovery from a reduced event log.
         model_activities: Optional[list[str]] = None
         if self._settings.common.process_model_path is not None:
             model_activities = get_activities_names_from_bpmn(self._settings.common.process_model_path)
 
-        # --- Discover Initial Models ---
+       # --- Discover Default Case Arrival and Resource Allocation models --- #
         print_section("Discovering initial BPS Model")
         runtimes.start(RuntimeMeter.INITIAL_MODEL)
         self._best_bps_model.case_arrival_model = discover_case_arrival_model(
-            self._event_log.train_validation_partition, self._event_log.log_ids
+            self._event_log.train_validation_partition,  # No optimization process here, use train + validation
+            self._event_log.log_ids,
+            use_observed_arrival_distribution=self._settings.common.use_observed_arrival_distribution,
         )
-        initial_resource_params = CalendarDiscoveryParameters()
+        calendar_discovery_parameters = CalendarDiscoveryParameters()
         self._best_bps_model.resource_model = discover_resource_model(
-            self._event_log.train_partition, self._event_log.log_ids, initial_resource_params
+            self._event_log.train_partition,  # Only train to not discover tasks that won't exist for control-flow opt.
+            self._event_log.log_ids,
+            calendar_discovery_parameters,
         )
-        self._best_bps_model.calendar_granularity = initial_resource_params.granularity
-        if model_activities:
+        self._best_bps_model.calendar_granularity = calendar_discovery_parameters.granularity
+        if model_activities is not None:
             repair_with_missing_activities(
-                self._best_bps_model.resource_model, model_activities,
-                self._event_log.train_validation_partition, self._event_log.log_ids
+                resource_model=self._best_bps_model.resource_model,
+                model_activities=model_activities,
+                event_log=self._event_log.train_validation_partition,
+                log_ids=self._event_log.log_ids,
             )
         runtimes.stop(RuntimeMeter.INITIAL_MODEL)
 
-        # --- Control-Flow Optimization ---
+        # --- Control-Flow Optimization --- #
         print_section("Optimizing control-flow parameters")
         runtimes.start(RuntimeMeter.CONTROL_FLOW_MODEL)
         best_control_flow_params = self._optimize_control_flow()
+        print("\nBEST CONTROL-FLOW PARAMETERS FOUND:")
+        print(best_control_flow_params.to_dict())
+        print("\n")
         self._best_bps_model.process_model = self._control_flow_optimizer.best_bps_model.process_model
         self._best_bps_model.gateway_probabilities = self._control_flow_optimizer.best_bps_model.gateway_probabilities
         self._best_bps_model.branch_rules = self._control_flow_optimizer.best_bps_model.branch_rules
@@ -119,16 +160,9 @@ class SimodControl:
         """Saves all necessary objects to disk for the next script to continue."""
         # Save BPMN model to a defined filename
         intermediate_bpmn_path = self._output_dir /  "control-flow" / INTERMEDIATE_BPMN_FILENAME
-        shutil.copy(self._best_bps_model.process_model, intermediate_bpmn_path)
-        self._best_bps_model.process_model = intermediate_bpmn_path  # Update path in model
-
-        # Save BPS model parameters to JSON
-        
-        prosimos_params = self._best_bps_model.to_prosimos_format()
-        if self._best_bps_model.case_arrival_model is not None:
-            print("DEBUG (Stage 1): Found a valid CaseArrivalModel. Injecting it into the JSON.")
-            arrival_model_dict = self._best_bps_model.case_arrival_model.to_dict()
-            prosimos_params["arrival_time_distribution"] = arrival_model_dict
+        if self._best_bps_model.process_model:
+            shutil.copy(self._best_bps_model.process_model, intermediate_bpmn_path)
+            self._best_bps_model.process_model = intermediate_bpmn_path  # Update path in model
         
         with (self._output_dir / "control-flow" / INTERMEDIATE_BPS_MODEL_FILENAME).open("w") as f:
             json.dump(self._best_bps_model.to_prosimos_format(), f, indent=4)
@@ -148,3 +182,16 @@ class SimodControl:
         # Save the full settings file
         settings_path = self._output_dir / "control-flow" / SETTINGS_FILENAME
         self._settings.to_yaml(settings_path)
+
+    def _optimize_control_flow(self) -> ControlFlowHyperoptIterationParams:
+        """
+        Control-flow and Gateway Probabilities discovery.
+        """
+        self._control_flow_optimizer = ControlFlowOptimizer(
+            event_log=self._event_log,
+            bps_model=self._best_bps_model,
+            settings=self._settings.control_flow,
+            base_directory=self._control_flow_dir,
+        )
+        best_control_flow_params = self._control_flow_optimizer.run()
+        return best_control_flow_params

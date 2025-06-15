@@ -168,6 +168,7 @@ class SimodSettings(BaseModel):
             Instance of the SIMOD configuration for the specified YAML file.
         """
         with file_path.open() as f:
+            #config = yaml.safe_load(f)
             config = yaml.load(f, Loader=yaml.FullLoader)
             return SimodSettings.from_yaml(config, config_dir=file_path.parent)
 

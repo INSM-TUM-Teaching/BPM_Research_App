@@ -379,14 +379,10 @@ class ResourceModelOptimizer:
         return status, response
 
     def _simulate_bps_model(self, bps_model: BPSModel, output_dir: Path) -> List[dict]:
-        # Ensure the case arrival model is present before generating the JSON.
-        print("\nDEBUG: Simulating with BPS model. Arrival model is:")
-        import pprint
-        pprint.pprint(bps_model.case_arrival_model)
-        print("-" * 20)
         if bps_model.case_arrival_model is None:
-            print("DEBUG: Arrival model was None, restoring from initial_bps_model.")
             bps_model.case_arrival_model = self.initial_bps_model.case_arrival_model
+        if bps_model.gateway_probabilities is None:
+            bps_model.gateway_probabilities = self.initial_bps_model.gateway_probabilities
         if bps_model.branch_rules is None:
             bps_model.branch_rules = self.initial_bps_model.branch_rules
         if bps_model.case_attributes is None:
