@@ -27,6 +27,13 @@ function HomePage() {
           >
             Go to Event Log
           </Button>
+                    <Button
+            variant="contained"
+            color="primary"
+            onClick={() => navigate("/bestbpmns")} // Navigate to /best-bpmns
+          >
+            Go to Best BPMNs
+          </Button>
         </Stack>
       </div>
     </div>

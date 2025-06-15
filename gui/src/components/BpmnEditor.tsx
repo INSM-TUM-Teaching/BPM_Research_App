@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState, ChangeEvent } from "react";
 import Modeler from "bpmn-js/lib/Modeler";
+import { useParams, useNavigate } from "react-router-dom";
+
 
 // ────────────────────────────────────────────────────────────────────────────────
 // BPMN‑JS STYLES – üçü de lazım
@@ -19,6 +21,7 @@ const DEFAULT_DIAGRAM = `<?xml version="1.0" encoding="UTF-8"?>
 </bpmn:definitions>`;
 
 const BpmnEditor: React.FC = () => {
+  const { id } = useParams(); 
   const modelerRef = useRef<InstanceType<typeof Modeler> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [, forceUpdate] = useState(0);
@@ -30,7 +33,21 @@ const BpmnEditor: React.FC = () => {
       keyboard: { bindTo: window }, // klavye kısayolları tüm pencere için
     });
 
-    modelerRef.current.importXML(DEFAULT_DIAGRAM).catch(console.error);
+    const loadDiagram = async () => {
+      if (id) {
+        try {
+          const response = await fetch(`/test/${id}.bpmn`);
+          const xml = await response.text();
+          await modelerRef.current!.importXML(xml);
+        } catch (error) {
+          console.error("fail to load the file", error);
+          await modelerRef.current!.importXML(DEFAULT_DIAGRAM);
+        }
+      } else {
+        console.log("Waiting for user to upload file.");
+      }
+    };
+    loadDiagram();
 
     return () => {
       modelerRef.current?.destroy();
@@ -47,10 +64,10 @@ const BpmnEditor: React.FC = () => {
     reader.onload = async () => {
       try {
         await modelerRef.current?.importXML(reader.result as string);
-        forceUpdate((n) => n + 1); // yeniden çizim için
+        forceUpdate((n) => n + 1); // trigger re-render
       } catch (err) {
         console.error(err);
-        alert("BPMN dosyası içe aktarılırken bir hata oluştu. Lütfen XML'in geçerli olduğundan emin olun.");
+        alert("fail to import BPMN file");
       }
     };
     reader.readAsText(file);
@@ -69,7 +86,7 @@ const BpmnEditor: React.FC = () => {
       URL.revokeObjectURL(url);
     } catch (err) {
       console.error(err);
-      alert("XML kaydedilirken hata oluştu.");
+      alert("fail to save XML.");
     }
   };
 
