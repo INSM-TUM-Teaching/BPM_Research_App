@@ -242,6 +242,7 @@ class SimodResource:
             bpmn_graph=best_bpmn_graph,
             discovery_method=best_control_flow_params.gateway_probabilities_method,
         )
+
         #  Branch Rules
         if self._settings.control_flow.discover_branch_rules:
             print_section("Discovering branch conditions")
@@ -253,6 +254,8 @@ class SimodResource:
             )
             self.final_bps_model.gateway_probabilities = \
                 map_branch_rules_to_flows(self.final_bps_model.gateway_probabilities, self.final_bps_model.branch_rules)
+        
+        
         # Resource model
         print_subsection("Discovering best resource model")
         self.final_bps_model.resource_model = discover_resource_model(
@@ -277,12 +280,14 @@ class SimodResource:
                 self._event_log.log_ids,
                 self._best_bps_model.case_attributes,
             )
+        
         # Batching
         if best_resource_model_params.discover_batching_rules:
             print_subsection("Discovering batching rules")
             self.final_bps_model.batching_rules = discover_batching_rules(
                 self._event_log.train_validation_partition, self._event_log.log_ids
             )
+        
         # Extraneous delays
         if self._best_bps_model.extraneous_delays is not None:
             # Add discovered delays and update BPMN model on disk
