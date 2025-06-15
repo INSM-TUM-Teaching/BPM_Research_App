@@ -119,8 +119,31 @@ class Simod:
           during the pipeline execution.
         """
 
+        # --- Initial setup --- #
+        if runtimes is None:
+            runtimes = RuntimeMeter()
+        
+        # Check the properties of the event log object
+        print("Properties of the event log object:")
+        for attr in dir(self._event_log):
+            if not attr.startswith('_'):  # Only print public properties
+                try:
+                    value = getattr(self._event_log, attr)
+                    if not callable(value):  # Only print properties, not methods
+                        print(f"  - {attr}: {value}")
+                except:
+                    print(f"  - {attr}: <cannot access>")
+
+        # Alternatively use a try-except block
+        try:
+            print(f"Event log file being used: {self._event_log.log_path}")
+        except AttributeError:
+            try:
+                print(f"Event log file being used: {self._event_log.from_path}")
+            except AttributeError:
+                print(f"Event log file being used: <attribute not found>")
+        
         # Runtime object
-        runtimes = RuntimeMeter() if runtimes is None else runtimes
         runtimes.start(RuntimeMeter.TOTAL)
 
         # Model activities might be different from event log activities if the model has been provided,
