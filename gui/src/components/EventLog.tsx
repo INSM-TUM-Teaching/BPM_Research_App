@@ -10,15 +10,19 @@ import DateTimeRangePicker from "./DateTimeRangePicker";
 import ActivitiesPopover from "./ActivitiesPopover";
 import CasesPopover from "./CasesPopover";
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-//////##
+import FolderIcon from '@mui/icons-material/Folder';
+import CategoryIcon from '@mui/icons-material/Category';
+import RefreshIcon from '@mui/icons-material/Refresh';
+//////##/////////////
 
 const EventLog: React.FC = () => {
   // States for data management
   const [allEventLogs, setAllEventLogs] = useState<any[]>([]);
   const [headers, setHeaders] = useState<string[]>([]);
   const [dateRange, setDateRange] = useState<[Date | null, Date | null]>([null, null]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // Add min/max date states
+  const [minLogDate, setMinLogDate] = useState<Date | null>(null);
+  const [maxLogDate, setMaxLogDate] = useState<Date | null>(null);
   
   // States for filters
   const [activityAnchorEl, setActivityAnchorEl] = useState<null | HTMLElement>(null);
@@ -37,7 +41,13 @@ const EventLog: React.FC = () => {
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [continueSuccess, setContinueSuccess] = useState<string | null>(null);
   const [continueError, setContinueError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
+  const [filterLoading, setFilterLoading] = useState(false);
+
+  // Add this state for refresh loading
+  const [refreshLoading, setRefreshLoading] = useState(false);
 
   const fetchAllEventLogs = async () => {
   setLoading(true);
@@ -152,20 +162,67 @@ const EventLog: React.FC = () => {
   const extractMetadata = (logs: any[]) => {
     const activitiesSet = new Set<string>();
     const casesSet = new Set<string>();
+    let minDate: Date | null = null;
+    let maxDate: Date | null = null;
     
     logs.forEach((row: any) => {
       if (row.activity) activitiesSet.add(row.activity);
       if (row.case_id) casesSet.add(row.case_id);
+      
+      // Extract dates - check all potential date fields
+      const dateFields = ['start_time', 'end_time', 'enabled_time'];
+      dateFields.forEach(field => {
+        if (row[field]) {
+          try {
+            const date = parseISO(row[field]);
+            if (!isNaN(date.getTime())) {
+              if (!minDate || date < minDate) minDate = date;
+              if (!maxDate || date > maxDate) maxDate = date;
+            }
+          } catch (e) {
+            // Skip invalid dates
+          }
+        }
+      });
     });
     
-    const uniqueActivities = Array.from(activitiesSet) as string[];
-    const uniqueCases = Array.from(casesSet) as string[];
+    setAllActivities(Array.from(activitiesSet) as string[]);
+    setSelectedActivities(Array.from(activitiesSet) as string[]);
+    setAllCaseIds(Array.from(casesSet) as string[]);
+    setSelectedCaseIds(Array.from(casesSet) as string[]);
     
-    setAllActivities(uniqueActivities);
-    setSelectedActivities(uniqueActivities);
-    setAllCaseIds(uniqueCases);
-    setSelectedCaseIds(uniqueCases);
+    // Set min and max dates for the date range picker
+    setMinLogDate(minDate);
+    setMaxLogDate(maxDate);
+    
+    // If date range isn't set yet, initialize it with the full log range
+    if (!dateRange[0] || !dateRange[1]) {
+      setDateRange([minDate, maxDate]);
+    }
+    
+    // Calculate activity usage
+    const activityUsage: { [activity: string]: number } = {};
+    const casesWithActivity: { [activity: string]: Set<string> } = {};
+    
+    logs.forEach((row: any) => {
+      if (row.activity && row.case_id) {
+        if (!casesWithActivity[row.activity]) {
+          casesWithActivity[row.activity] = new Set();
+        }
+        casesWithActivity[row.activity].add(row.case_id);
+      }
+    });
+    
+    // Convert sets to counts
+    Object.keys(casesWithActivity).forEach(activity => {
+      activityUsage[activity] = casesWithActivity[activity].size;
+    });
+    
+    setActivityUsage(activityUsage);
   };
+
+  // State for activity usage data
+  const [activityUsage, setActivityUsage] = useState<{ [activity: string]: number }>({});
 
   // Initial load
   useEffect(() => {
@@ -335,6 +392,90 @@ const EventLog: React.FC = () => {
     setContinueError(null);
   };
 
+  // Create wrapper functions for filters to show loading state
+
+  // For activities filter
+  const handleApplyActivities = (selected: string[]) => {
+    setFilterLoading(true);
+    setActivityAnchorEl(null);
+    setTimeout(() => {
+      setSelectedActivities(selected);
+      setFilterLoading(false);
+    }, 600);
+  };
+
+  // For cases filter
+  const handleApplyCases = (selected: string[]) => {
+    // First show loading
+    setFilterLoading(true);
+    
+    // Close the popover immediately
+    setCaseAnchorEl(null);
+    
+    // Then apply filter with a delay to ensure loading is visible
+    setTimeout(() => {
+      setSelectedCaseIds(selected);
+      setFilterLoading(false);
+    }, 600); // Longer timeout for visibility
+  };
+
+  // Add this handler for date range changes
+  const handleDateRangeChange = (newRange: [Date | null, Date | null]) => {
+    setFilterLoading(true);
+    setTimeout(() => {
+      setDateRange(newRange);
+      setFilterLoading(false);
+    }, 600);
+  };
+
+  // When opening the cases popover
+  const openCasesPopover = (event: React.MouseEvent<HTMLElement>) => {
+    setCaseAnchorEl(event.currentTarget);
+  };
+
+  // When closing the cases popover
+  const closeCasesPopover = () => {
+    setCaseAnchorEl(null);
+  };
+
+  // Add this function to handle refresh
+  const handleRefresh = () => {
+    setRefreshLoading(true);
+    
+    // You can reuse your existing data loading function here
+    // Or implement a new one specifically for refresh
+    
+    // For example:
+    fetchEventLog()
+      .then(() => {
+        setRefreshLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error refreshing data:", error);
+        setRefreshLoading(false);
+      });
+  };
+
+  // If you don't have a fetchEventLog function, here's a basic one:
+  const fetchEventLog = async () => {
+    try {
+      // Fetch your data from the API
+      const response = await fetch('/api/eventLog');
+      const data = await response.json();
+      
+      // Update your state with the new data
+      setAllEventLogs(data);
+      
+      // Extract metadata (activities, cases, etc.)
+      extractMetadata(data);
+      
+      return data;
+    } catch (error) {
+      console.error("Error fetching event log:", error);
+      throw error;
+    }
+  };
+
   return (
     <div style={{ height: "100vh", display: "flex", flexDirection: "column", padding: "16px" }}>
       <Stack
@@ -345,55 +486,88 @@ const EventLog: React.FC = () => {
         alignItems="center"
       >
         <Stack direction="row" spacing={1} flexWrap="wrap" alignItems="center">
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={(e) => setActivityAnchorEl(e.currentTarget)}
-            disabled={loading || !allEventLogs.length}
-            size="small"
-          >
-            Activities ({selectedActivities.length})
-          </Button>
+          {/* Date range picker with loading indicator */}
+          <Box position="relative" display="inline-block" sx={{ mr: 1, mb: 1 }}>
+            <DateTimeRangePicker
+              value={dateRange}
+              onChange={handleDateRangeChange}
+              minDate={minLogDate}
+              maxDate={maxLogDate}
+            />
+            {filterLoading && (
+              <Box 
+                position="absolute" 
+                top="0" 
+                left="0" 
+                width="100%" 
+                height="100%" 
+                display="flex" 
+                alignItems="center" 
+                justifyContent="center"
+                bgcolor="rgba(255,255,255,0.7)"
+                borderRadius={1}
+                zIndex={5}
+              >
+                <CircularProgress size={20} />
+              </Box>
+            )}
+          </Box>
 
-          <Button
-            variant="contained"
-            color="secondary"
-            onClick={(e) => setCaseAnchorEl(e.currentTarget)}
-            disabled={loading || !allEventLogs.length}
-            size="small"
-          >
-            Cases ({selectedCaseIds.length})
-          </Button>
-
-          <DateTimeRangePicker
-            value={dateRange}
-            onChange={setDateRange}
-          />
-
-          <Button
-            variant="contained"
-            onClick={fetchAllEventLogs}
-            disabled={loading}
-            size="small"
-          >
-            Refresh
-          </Button>
-          
-          <FormControl size="small" style={{ minWidth: 120 }}>
-            <InputLabel>Records Per Page</InputLabel>
-            <Select
-              value={pageSize}
-              onChange={handlePageSizeChange}
-              label="Records Per Page"
-              disabled={loading}
+          {/* Activities button with loading indicator */}
+          <Box position="relative" display="inline-block" sx={{ mr: 1, mb: 1 }}>
+            <Button
+              variant="outlined" 
+              onClick={(e) => setActivityAnchorEl(e.currentTarget)}
+              startIcon={<CategoryIcon />}
             >
-              <MenuItem value={50}>50 records</MenuItem>
-              <MenuItem value={100}>100 records</MenuItem>
-              <MenuItem value={250}>250 records</MenuItem>
-              <MenuItem value={500}>500 records</MenuItem>
-              <MenuItem value={1000}>1000 records</MenuItem>
-            </Select>
-          </FormControl>
+              Activities {selectedActivities.length !== allActivities.length ? ` (${selectedActivities.length}/${allActivities.length})` : ''}
+            </Button>
+            {filterLoading && activityAnchorEl === null && (
+              <Box 
+                position="absolute" 
+                top="0" 
+                left="0" 
+                width="100%" 
+                height="100%" 
+                display="flex" 
+                alignItems="center" 
+                justifyContent="center"
+                bgcolor="rgba(255,255,255,0.7)"
+                borderRadius={1}
+                zIndex={5}
+              >
+                <CircularProgress size={20} />
+              </Box>
+            )}
+          </Box>
+
+          {/* Cases button with loading indicator */}
+          <Box position="relative" display="inline-block" sx={{ mb: 1 }}>
+            <Button
+              variant="outlined"
+              onClick={(e) => setCaseAnchorEl(e.currentTarget)}
+              startIcon={<FolderIcon />}
+            >
+              Cases {selectedCaseIds.length !== allCaseIds.length ? ` (${selectedCaseIds.length}/${allCaseIds.length})` : ''}
+            </Button>
+            {filterLoading && caseAnchorEl === null && (
+              <Box 
+                position="absolute" 
+                top="0" 
+                left="0" 
+                width="100%" 
+                height="100%" 
+                display="flex" 
+                alignItems="center" 
+                justifyContent="center"
+                bgcolor="rgba(255,255,255,0.7)"
+                borderRadius={1}
+                zIndex={5}
+              >
+                <CircularProgress size={20} />
+              </Box>
+            )}
+          </Box>
         </Stack>
         
         {/* Continue button - right aligned */}
@@ -413,24 +587,6 @@ const EventLog: React.FC = () => {
           </span>
         </Tooltip>
       </Stack>
-
-      <ActivitiesPopover
-        open={Boolean(activityAnchorEl)}
-        anchorEl={activityAnchorEl}
-        activities={allActivities}
-        selected={selectedActivities}
-        onClose={() => setActivityAnchorEl(null)}
-        onApply={(selected) => setSelectedActivities(selected)}
-      />
-
-      <CasesPopover
-        open={Boolean(caseAnchorEl)}
-        anchorEl={caseAnchorEl}
-        cases={allCaseIds}
-        selected={selectedCaseIds}
-        onClose={() => setCaseAnchorEl(null)}
-        onApply={(selected) => setSelectedCaseIds(selected)}
-      />
 
       {/* Filtering summary */}
       {filteredLogs.length !== allEventLogs.length && allEventLogs.length > 0 && (
@@ -640,6 +796,48 @@ const EventLog: React.FC = () => {
           {continueError}
         </Alert>
       </Snackbar>
+
+      {filterLoading && (
+        <Box
+          position="fixed"
+          top={0}
+          left={0}
+          right={0}
+          bottom={0}
+          display="flex"
+          flexDirection="column"
+          alignItems="center"
+          justifyContent="center"
+          bgcolor="rgba(255,255,255,0.7)"
+          zIndex={1300}
+        >
+          <CircularProgress size={60} />
+          <Typography variant="h6" style={{ marginTop: 16 }}>
+            Applying Filters...
+          </Typography>
+        </Box>
+      )}
+      
+      {/* Popovers */}
+      <ActivitiesPopover
+        open={Boolean(activityAnchorEl)}
+        anchorEl={activityAnchorEl}
+        activities={allActivities}
+        selected={selectedActivities}
+        onClose={() => setActivityAnchorEl(null)}
+        onApply={handleApplyActivities}
+        activityUsageData={activityUsage}
+        allCaseIds={allCaseIds}
+      />
+
+      <CasesPopover
+        open={Boolean(caseAnchorEl)}
+        anchorEl={caseAnchorEl}
+        cases={allCaseIds}
+        selected={selectedCaseIds}
+        onClose={() => setCaseAnchorEl(null)}
+        onApply={handleApplyCases}
+      />
     </div>
   );
 };
