@@ -21,52 +21,26 @@ common:
     enabled_time: "enabled_time"  # If not present in the log, automatically computed
     start_time: "start_time"
     end_time: "end_time"
-
-  # Flag to perform evaluation (if 'test_log_path' not provided) with a test partition of the input log
-  perform_final_evaluation: true
-  # Number of evaluations of the discovered BPS model
-  num_final_evaluations: 1
-  # Metrics to evaluate the discovered BPS model (reported in an output file)
-  evaluation_metrics:
-    - 3_gram_distance
-    - 2_gram_distance
-    - absolute_event_distribution
-    - relative_event_distribution
-    - circadian_event_distribution
-    - arrival_event_distribution
-    - cycle_time_distribution
-  # Whether to simulate the arrival times using the distribution of inter-arrival times observed in the training log,
-  # or fitting a parameterized probabilistic distribution (e.g., norm, expon) with these observed values.
-  use_observed_arrival_distribution: false
   # Whether to delete all files created during the optimization phases or not
-  clean_intermediate_files: false
-  # Whether to discover global/case/event attributes and their update rules or not
+  clean_intermediate_files: false  
+  # Whether to discover case attributes or not
   discover_data_attributes: false
-
 #################
 # Preprocessing #
 #################
 preprocessing:
   # Threshold to consider two activities as concurrent when computing the enabled time (if necessary)
   enable_time_concurrency_threshold: 0.75
-  # If true, preprocess multitasking (i.e., one resource performing more than one activity at the same time) by
-  # adjusting the timestamps (start/end) of those activities being executed at the same time by the same resource.
-  multitasking: false
-  # Thresholds for the heuristics' concurrency oracle (only used to estimate start times if missing).
-  concurrency_df: 0.9 # Directly-Follows threshold
-  concurrency_l2l: 0.9 # Length 2 loops threshold
-  concurrency_l1l: 0.9 # Length 1 loops threshold
-
 ################
 # Control-flow #
 ################
 control_flow:
   # Metric to guide the optimization process (loss function to minimize)
-  optimization_metric: n_gram_distance
+  optimization_metric: two_gram_distance
   # Number of optimization iterations over the search space
-  num_iterations: 1
+  num_iterations: 3
   # Number of times to evaluate each iteration (using the mean of all of them)
-  num_evaluations_per_iteration: 1
+  num_evaluations_per_iteration: 2
   # Method for discovering gateway probabilities
   gateway_probabilities: discovery
   # Discover process model with SplitMiner v3
@@ -87,13 +61,6 @@ control_flow:
   prioritize_parallelism:
     - true
     - false
-   # Discover data-aware branching rules, i.e., BPMN decision points based on value of data attributes
-  discover_branch_rules: true
-  # Minimum f-score value to consider the discovered data-aware branching rules
-  f_score:
-    - 0.3
-    - 0.9
-
 ##################
 # Resource model #
 ##################
@@ -101,9 +68,9 @@ resource_model:
   # Metric to guide the optimization process (loss function to minimize)
   optimization_metric: circadian_emd
   # Number of optimization iterations over the search space
-  num_iterations: 1
+  num_iterations: 3
   # Number of times to evaluate each iteration (using the mean of all of them)
-  num_evaluations_per_iteration: 1
+  num_evaluations_per_iteration: 2
   # Whether to discover prioritization or batching behavior
   discover_prioritization_rules: false
   discover_batching_rules: false
@@ -123,20 +90,11 @@ resource_model:
       - 0.5
     # Participation of a resource in the process to discover a calendar for them (gathered together otherwise)
     participation: 0.4
-        # Angle of the fuzzy trapezoid when computing the availability probability for an activity (angle from start to end)
-    fuzzy_angle:
-      - 0.1
-      - 0.9
-
 #####################
 # Extraneous delays #
 #####################
 extraneous_activity_delays:
-  # Metric to guide the optimization process (loss function to minimize)
-  optimization_metric: relative_emd
   # Method to compute the extraneous delay
   discovery_method: eclipse-aware
   # Number of optimization iterations over the search space (1 = direct discovery, no optimization stage)
   num_iterations: 1
-  # Number of times to evaluate each iteration (using the mean of all of them)
-  num_evaluations_per_iteration: 1
