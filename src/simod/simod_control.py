@@ -1,9 +1,8 @@
 import json
 import shutil
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 import pickle
-
 import pandas as pd
 from pix_framework.discovery.case_arrival import discover_case_arrival_model
 from pix_framework.discovery.gateway_probabilities import compute_gateway_probabilities
@@ -43,7 +42,6 @@ INTERMEDIATE_BPS_MODEL_FILENAME = "intermediate_bps_model.json"
 BEST_CF_PARAMS_FILENAME = "best_control_flow_params.json"
 MODEL_ACTIVITIES_FILENAME = "model_activities.pickle"
 EVENT_LOG_FILENAME = "event_log.pickle"
-# --- FIX: Changed filename to match the output of the to_yaml() method ---
 SETTINGS_FILENAME = "simod_settings.yml"
 RUNTIMES_FILENAME = "runtimes_part1.pickle"
 
@@ -179,9 +177,12 @@ class SimodControl:
         with (self._output_dir / "control-flow" / RUNTIMES_FILENAME).open("wb") as f:
             pickle.dump(runtimes, f)
 
-        # Save the full settings file
+        #Save the full settings file
         settings_path = self._output_dir / "control-flow" / SETTINGS_FILENAME
         self._settings.to_yaml(settings_path)
+        file_content = settings_path.read_text()
+        cleaned_content = file_content.replace("!!python/tuple", "")
+        settings_path.write_text(cleaned_content)
 
     def _optimize_control_flow(self) -> ControlFlowHyperoptIterationParams:
         """

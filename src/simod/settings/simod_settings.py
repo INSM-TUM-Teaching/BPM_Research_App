@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Union, Optional
 
 import yaml
+
 from pydantic import BaseModel
 
 from .common_settings import CommonSettings
@@ -210,7 +211,7 @@ class SimodSettings(BaseModel):
         """
         data = yaml.dump(self.to_dict(), sort_keys=False)
         #output_path = output_dir / "configuration.yaml"
-        output_path.parent.mkdir(parents=True, exist_ok=True) 
+        output_path.parent.mkdir(parents=True, exist_ok=True)
 
         with output_path.open("w") as f:
             f.write(data)
