@@ -59,7 +59,8 @@ def simulate(settings: ProsimosSettings):
     """
     print_message(f"Simulation settings: {settings}")
 
-    run_simulation(
+    try:
+        run_simulation(
         bpmn_path=settings.bpmn_path.__str__(),
         json_path=settings.parameters_path.__str__(),
         total_cases=settings.num_simulation_cases,
@@ -68,6 +69,18 @@ def simulate(settings: ProsimosSettings):
         starting_at=settings.simulation_start.isoformat(),
         is_event_added_to_log=False,  # Don't add Events (start/end/timers) to output log
     )
+        print_message(f"DEBUG: Successfully completed simulation for: {settings.output_log_path}")
+    except Exception as e:
+        print("="*80)
+        print(f"FATAL ERROR in prosimos.run_simulation for log: {settings.output_log_path}")
+        print(f"BPMN Path: {settings.bpmn_path}")
+        print(f"JSON Path: {settings.parameters_path}")
+        print(f"Error Type: {type(e)}")
+        print(f"Error Message: {e}")
+        import traceback
+        traceback.print_exc()
+        print("="*80)
+        raise e
 
 
 def simulate_and_evaluate(
