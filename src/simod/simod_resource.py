@@ -115,6 +115,7 @@ class SimodResource:
             if 'gateway_probabilities' in raw_params:
                 method_str = raw_params['gateway_probabilities']
                 constructor_params['gateway_probabilities_method'] = GatewayProbabilitiesDiscoveryMethod(method_str)
+            
             constructor_params.setdefault('output_dir', self._control_flow_files_dir)
             constructor_params.setdefault('provided_model_path', self._settings.common.process_model_path)
             valid_keys = {f.name for f in dataclasses.fields(ControlFlowHyperoptIterationParams)}
