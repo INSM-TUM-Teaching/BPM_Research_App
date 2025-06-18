@@ -26,6 +26,14 @@ from ..simulation.parameters.BPS_model import BPSModel
 from ..simulation.prosimos import simulate_and_evaluate
 from ..utilities import get_process_model_path, get_simulation_parameters_path, hyperopt_step
 
+# FastAPI server imports
+import threading
+import time
+import uvicorn
+import requests
+
+# Import FastAPI app
+from simod.fastapi_server.best_model_selection_api import app
 
 class ControlFlowOptimizer:
     """
@@ -77,9 +85,10 @@ class ControlFlowOptimizer:
     # Path to the training log in XES format, needed for Split Miner
     _xes_train_log_path: Optional[Path] = None
     # Set of trials for the hyperparameter optimization process
-    _bayes_trials = Trials
+    _bayes_trials = Trials   
 
     def __init__(self, event_log: EventLog, bps_model: BPSModel, settings: ControlFlowSettings, base_directory: Path):
+
         # Save event log, optimization settings, and output directory
         self.event_log = event_log
         self.initial_bps_model = bps_model.deep_copy()
@@ -188,6 +197,12 @@ class ControlFlowOptimizer:
         self.iteration_index += 1
 
         return response
+    
+    # Integrating FastAPI server to allow expert-guided BPMN model selection
+    def start_fastapi_server(self):
+        config = uvicorn.Config(app, host="127.0.0.1", port=8000, log_level="info")
+        server = uvicorn.Server(config)
+        server.run()
 
     def run(self) -> HyperoptIterationParams:
         """
@@ -208,6 +223,17 @@ class ControlFlowOptimizer:
         AssertionError
             If the best discovered process model path does not exist after optimization.
         """
+
+        # Start FastAPI server in a background thread
+        fastapi_thread = threading.Thread(target=lambda: ControlFlowOptimizer.start_fastapi_server(self=None), daemon=True)
+        fastapi_thread.start()
+
+        # Wait a bit for the server to start up properly
+        time.sleep(1)
+        print_message("-----------------------------------")
+        print_message("✅ API server started successfully.")
+        print_message("-----------------------------------") 
+
         # Define search space
         self.iteration_index = 0
         search_space = self._define_search_space(settings=self.settings)
@@ -232,13 +258,60 @@ class ControlFlowOptimizer:
         # Save DataFrame to output folder
         # Sorted values based on loss (two_gram_distance:SIMOD selection criteria for the best BPMN model) are saved in the output folder
         # This information is useful for the expert to select the best BPMN model that he think better fits the process
-        print_message("----------------------------------------------------")
-        print_message("Saving control flow optimization results to CSV file")
-        print_message("----------------------------------------------------") 
+        print_message("-------------------------------------------------------")
+        print_message("✅ Saving control flow optimization results to CSV file")
+        print_message("-------------------------------------------------------") 
         output_file = self.base_directory / "control_flow_optimization_results.csv"
         top_3_ok_results.to_csv(output_file, index=False)
 
-        best_result = results[results.status == STATUS_OK].iloc[0]
+        # Expert-Guided Best BPMN Model Selection via API
+        print_message("-------------------------------------------------------")
+        print_message("⏳ Waiting for expert to select a BPMN model via API...")
+        print_message("-------------------------------------------------------")
+        
+        selected_model_path = None
+        while selected_model_path is None:
+            try:
+                response = requests.get("http://127.0.0.1:8000/get-selected-model/")
+                data = response.json()
+                if "selected_model_path" in data:
+                    selected_model_path = Path(data["selected_model_path"])
+                    if selected_model_path.exists():
+                        print_message("----------------------------------------------------------------------------------------")
+                        print_message(f"✅ Expert selected: {selected_model_path}")
+                        print_message("----------------------------------------------------------------------------------------")
+                        break
+                    else:
+                        print_message("---------------------------------------------------------------")
+                        print_message(f"⚠️ Path {selected_model_path} does not exist. Waiting again...")
+                        print_message("---------------------------------------------------------------")
+                        selected_model_path = None
+                else:
+                    print_message("----------------------------------------------")
+                    print_message("⏳ No selection yet. Retrying in 10 seconds...")
+                    print_message("----------------------------------------------")
+                time.sleep(10)
+            except Exception as e:
+                print_message("-------------------------------------")
+                print_message(f"❌ Error polling FastAPI: {e}")
+                print_message("------------------------------------")
+                time.sleep(5)
+        
+        # Validate selection
+        assert selected_model_path.exists(), f"Selected model path {selected_model_path} does not exist"
+
+        # Selecting the best result based on expert's selection 
+        # Find the matching row in top_3_ok_results where process_model_path matches the selected_model_path
+        matching_rows = top_3_ok_results[top_3_ok_results["process_model_path"] == selected_model_path]
+
+        # Ensure there's an exact match
+        if matching_rows.empty:
+            raise ValueError(f"No matching process model found in top 3 results for: {selected_model_path}")
+
+        # Assign the matched row as best_result
+        best_result = matching_rows.iloc[0]
+
+        # Validate the best result
         assert best_result[
             "process_model_path"
         ].exists(), f"Best model path {best_result['process_model_path']} does not exist"
