@@ -99,6 +99,10 @@ To install package in editable mode:
 ```shell
 pip install -e .
 ```
+To install package for API requests and responses:
+```shell
+pip install fastapi uvicorn
+```
 
 To run the file without simod package:
 
