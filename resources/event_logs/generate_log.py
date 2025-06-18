@@ -56,4 +56,4 @@ df = pd.DataFrame(event_log)
 df.to_csv("event_log_with_common_activity.csv", index=False)
 df.to_csv("event_log_with_common_activity.csv.gz", index=False, compression="gzip")
 
-print("✅ event_log_with_common_activity.csv and .csv.gz generated.")
+print("event_log_with_common_activity.csv and .csv.gz generated.")
