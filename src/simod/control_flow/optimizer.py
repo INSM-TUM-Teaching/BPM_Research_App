@@ -226,12 +226,17 @@ class ControlFlowOptimizer:
         # Process best results
         results = pd.DataFrame(self._bayes_trials.results).sort_values("loss")
 
+        # Filter top 3 successful results (status == STATUS_OK) for expert to select the best BPMN model 
+        top_3_ok_results = results[results.status == STATUS_OK].head(3)
+
         # Save DataFrame to output folder
         # Sorted values based on loss (two_gram_distance:SIMOD selection criteria for the best BPMN model) are saved in the output folder
         # This information is useful for the expert to select the best BPMN model that he think better fits the process
-        print_message("Saving control flow optimization results to CSV file") 
+        print_message("----------------------------------------------------")
+        print_message("Saving control flow optimization results to CSV file")
+        print_message("----------------------------------------------------") 
         output_file = self.base_directory / "control_flow_optimization_results.csv"
-        results.to_csv(output_file, index=False)
+        top_3_ok_results.to_csv(output_file, index=False)
 
         best_result = results[results.status == STATUS_OK].iloc[0]
         assert best_result[
