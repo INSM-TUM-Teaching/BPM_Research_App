@@ -2,7 +2,6 @@ import pandas as pd
 from datetime import datetime, timedelta
 import random
 
-# Configuration
 num_cases = 100
 common_activity = "Submit Application"
 other_activities = [
@@ -53,7 +52,20 @@ for cid in range(num_cases):
 
 # Save to CSV and GZIP
 df = pd.DataFrame(event_log)
+
+print("-" * 40)
+print("Running verification...")
+# Count the number of unique cases that contain the common activity
+cases_with_common_activity = df[df['activity'] == common_activity]['case_id'].nunique()
+print(f"Total number of cases configured: {num_cases}")
+print(f"Activity to check: '{common_activity}'")
+print(f"Number of unique cases containing this activity: {cases_with_common_activity}")
+if cases_with_common_activity == num_cases:
+    print("\nThe common activity is present in all cases as expected.")
+else:
+    print(f"\nExpected {num_cases} cases with the common activity, but found {cases_with_common_activity}.")
+print("-" * 40)
+
 df.to_csv("event_log_with_common_activity.csv", index=False)
 df.to_csv("event_log_with_common_activity.csv.gz", index=False, compression="gzip")
-
 print("event_log_with_common_activity.csv and .csv.gz generated.")
