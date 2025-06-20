@@ -33,7 +33,7 @@ import uvicorn
 import requests
 
 # Import FastAPI app
-from simod.fastapi_server.best_model_selection_api import app
+from simod.fastapi_server.fastapi_server import app
 
 class ControlFlowOptimizer:
     """
@@ -263,6 +263,39 @@ class ControlFlowOptimizer:
         print_message("-------------------------------------------------------") 
         output_file = self.base_directory / "control_flow_optimization_results.csv"
         top_3_ok_results.to_csv(output_file, index=False)
+
+        # POST the results to an external endpoint for GUI display and find best 3 BPMN model paths
+        try:
+            # Prepare results for sending via POST
+            # IMPORTANT: Ensure any Path objects are strings
+            # Explicitly convert all fields in the results to JSON-serializable data
+            results_data = []
+            for _, row in top_3_ok_results.iterrows():
+                row_dict = {}
+                for column_name, value in row.items():
+                    if isinstance(value, Path):            # Convert Path instances
+                        row_dict[column_name] = str(value)
+                    else:
+                        row_dict[column_name] = value
+                results_data.append(row_dict)
+
+            response = requests.post(
+                "http://localhost:8000/top-3-results/",  # Change this to your actual endpoint
+                json=results_data,  # Use the prepared data
+                timeout=10
+            )
+            if response.ok:
+                print_message("-----------------------------------------------------------")
+                print_message(f"✅ Top 3 results successfully sent to the GUI! Status: {response.status_code}")
+                print_message("-----------------------------------------------------------")
+            else:
+                print_message("-------------------------------------------------------------------------------")
+                print_message(f"⚠️ Warning: Failed to send results (status {response.status_code}). Response: {response.text}")
+                print_message("-------------------------------------------------------------------------------")
+        except Exception as e:
+            print_message("-----------------------------------------------------------")            
+            print_message(f"❌ Error sending top 3 results to the GUI: {e}")
+            print_message("-----------------------------------------------------------")
 
         # Expert-Guided Best BPMN Model Selection via API
         print_message("-------------------------------------------------------")
