@@ -3,11 +3,12 @@ import os
 import time
 import threading
 import pandas as pd
-from typing import Optional
-from fastapi import FastAPI, HTTPException, UploadFile, File, Form
+from typing import Optional, List, Dict
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Body
 from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 ####
 app = FastAPI()
 
@@ -25,6 +26,12 @@ SIMOD_CONTINUE_EVENT = threading.Event()
 FILTERED_EVENT_LOG_PATH = None
 CURRENT_EVENT_LOG_PATH = None
 SIMOD_STATUS = "idle"  # idle, running, waiting_for_filter, completed, error
+
+# Variables for best model selection
+selected_model_path: Optional[Path] = None
+
+# Variables for top-3 results
+top_3_results: Optional[List[Dict]] = None
 
 # Yükleme dizinini tanımla
 UPLOAD_DIR = Path("uploaded_logs")
@@ -363,6 +370,41 @@ async def clear_event_logs():
         print(error_details)
         raise HTTPException(status_code=500, detail=f"Event log temizlenirken hata oluştu: {str(e)}")
     
+
+# Best Model Selection Router
+@app.post("/select-model/")
+async def select_model(selection: dict = Body(...)):
+    """Accepts a model selection and saves the path."""
+    global selected_model_path
+    model_path = selection.get("model_path")
+    if not model_path:
+        raise HTTPException(status_code=400, detail="model_path is required")
+    
+    selected_model_path = Path(model_path)
+    return {"message": "Model selection received", "model_path": str(selected_model_path)}
+
+@app.get("/get-selected-model/")
+async def get_selection():
+    """Returns the currently selected model path."""
+    if selected_model_path is None:
+        return {"message": "No model has been selected yet"}
+    return {"selected_model_path": str(selected_model_path)}
+
+# Best Three Results Router
+@app.post("/top-3-results/")
+async def receive_top_3_results(data: List[Dict] = Body(...)):
+    """Accept the top-3 results and save them in memory."""
+    global top_3_results
+    top_3_results = data
+    return {"message": "Top-3 results received successfully", "count": len(data)}
+
+@app.get("/top-3-results/")
+async def get_top_3_results():
+    """Return the top-3 results if available."""
+    if top_3_results is None:
+        return {"message": "No results have been received yet."}
+    return JSONResponse(content={"results": top_3_results})
+
 
 if __name__ == "__main__":
     import uvicorn

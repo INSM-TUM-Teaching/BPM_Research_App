@@ -25,7 +25,7 @@ function App() {
             element={<EventLog />}
           />
           <Route path="/bestbpmns" element={<BestBpmns />} />
-          <Route path="/bpmn/:filename" element={<BpmnViewer/>} />
+          <Route path="/bpmn" element={<BpmnViewer/>} />
         </Routes>
       </div>
     </Router>
