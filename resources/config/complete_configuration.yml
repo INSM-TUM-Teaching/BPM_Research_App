@@ -21,7 +21,7 @@ common:
   # Flag to perform evaluation (if 'test_log_path' not provided) with a test partition of the input log
   perform_final_evaluation: true
   # Number of evaluations of the discovered BPS model
-  num_final_evaluations: 10
+  num_final_evaluations: 1
   # Metrics to evaluate the discovered BPS model (reported in an output file)
   evaluation_metrics:
     - 3_gram_distance
@@ -35,7 +35,7 @@ common:
   # or fitting a parameterized probabilistic distribution (e.g., norm, expon) with these observed values.
   use_observed_arrival_distribution: false
   # Whether to delete all files created during the optimization phases or not
-  clean_intermediate_files: true
+  clean_intermediate_files: false
   # Whether to discover global/case/event attributes and their update rules or not
   discover_data_attributes: false
 
@@ -62,9 +62,9 @@ control_flow:
   # Metric to guide the optimization process (loss function to minimize)
   optimization_metric: n_gram_distance
   # Number of optimization iterations over the search space
-  num_iterations: 20
+  num_iterations: 1
   # Number of times to evaluate each iteration (using the mean of all of them)
-  num_evaluations_per_iteration: 3
+  num_evaluations_per_iteration: 1
   # Methods for discovering gateway probabilities
   gateway_probabilities:
     - equiprobable
@@ -101,9 +101,9 @@ resource_model:
   # Metric to guide the optimization process (loss function to minimize)
   optimization_metric: circadian_emd
   # Number of optimization iterations over the search space
-  num_iterations: 20
+  num_iterations: 1
   # Number of times to evaluate each iteration (using the mean of all of them)
-  num_evaluations_per_iteration: 3
+  num_evaluations_per_iteration: 1
   # Whether to discover prioritization or batching behavior
   discover_prioritization_rules: false
   discover_batching_rules: false
@@ -143,4 +143,4 @@ extraneous_activity_delays:
   # Number of optimization iterations over the search space (1 = direct discovery, no optimization stage)
   num_iterations: 1
   # Number of times to evaluate each iteration (using the mean of all of them)
-  num_evaluations_per_iteration: 3
+  num_evaluations_per_iteration: 1

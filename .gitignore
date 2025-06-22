@@ -12,6 +12,7 @@ tests/assets/validation_*
 input_files
 log/
 .pytest_cache/
+simod-env/
 
 *.dat
 *.log

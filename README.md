@@ -94,6 +94,15 @@ of each element:
 
 ## For developers
 
+To install package in editable mode:
+```shell
+pip install -e .
+```
+To install package for API requests and responses:
+```shell
+pip install fastapi uvicorn
+```
+
 ### Testing
 
 Use `pytest` to run tests on the package:

@@ -8,14 +8,14 @@ router = APIRouter()
 # Will hold the received top-3 results
 top_3_results: Optional[List[Dict]] = None
 
-@router.post("/bpmn/")
+@router.post("/top-3-results/")
 def receive_top_3_results(data: List[Dict] = Body(...)):
     """Accept the top-3 results and save them in memory."""
     global top_3_results
     top_3_results = data
     return {"message": "Top-3 results received successfully", "count": len(data)}
 
-@router.get("/bpmn/")
+@router.get("/top-3-results/")
 def get_top_3_results():
     """Return the top-3 results if available."""
     if top_3_results is None:
