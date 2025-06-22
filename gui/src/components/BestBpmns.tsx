@@ -1,10 +1,12 @@
-import React from "react";
+import React, { useEffect, useState, useRef } from "react";
 import Viewer from "bpmn-js/lib/Viewer";
 import { useNavigate } from "react-router-dom";
-import { useEffect, useRef } from "react";
 
-
-const bpmnList = ["test1.bpmn", "test2.bpmn", "test3.bpmn"];
+interface BpmnInfo {
+  id: string;
+  filename: string;
+  //score: number;
+}
 
 const BpmnThumbnail: React.FC<{ file: string }> = ({ file }) => {
   const ref = useRef<HTMLDivElement>(null);
@@ -36,31 +38,35 @@ const BpmnThumbnail: React.FC<{ file: string }> = ({ file }) => {
 };
 
 const BestBpmns: React.FC = () => {
+  const [bpmnList, setBpmnList] = useState<BpmnInfo[]>([]);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    fetch("http://localhost:8000/bestbpmns/")
+      .then((res) => res.json())
+      .then((data) => setBpmnList(data.results || []))
+      .catch((err) => console.error("Failed to load BPMN list", err));
+  }, []);
 
   return (
     <div style={{ padding: 40 }}>
       <h2 style={{ textAlign: "center" }}>🏆 Best 3 BPMN</h2>
       <div style={{ display: "flex", gap: 24, flexWrap: "wrap", justifyContent: "center" }}>
-        {bpmnList.map((file, index) => (
+        {bpmnList.map(({ id, filename }) => (
           <div
-            key={file}
-            onClick={() => navigate(`/bpmn/${encodeURIComponent(file)}`)}
+            key={id}
+            onClick={() => navigate(`/bpmn/${encodeURIComponent(filename)}`)}
             style={{
               border: "1px solid #ccc",
               padding: 16,
               width: 300,
               cursor: "pointer",
-              transition: "transform 0.3s",
               borderRadius: 10,
               background: "#f9f9f9",
             }}
-            onMouseEnter={(e) => ((e.currentTarget.style.transform = "scale(1.05)"))}
-            onMouseLeave={(e) => ((e.currentTarget.style.transform = "scale(1)"))}
           >
-            <h3 style={{ textAlign: "center" }}>{file}</h3>
-            <BpmnThumbnail file={file} />
-            {/* <div style={{ height: 200, backgroundColor: "#eee" }}>Click to check</div> */}
+            <h3 style={{ textAlign: "center" }}>{id}</h3>
+            <BpmnThumbnail file={filename} />
           </div>
         ))}
       </div>
