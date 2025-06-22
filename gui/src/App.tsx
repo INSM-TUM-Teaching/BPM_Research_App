@@ -3,6 +3,9 @@ import "./App.css";
 import BpmnEditor from "./components/BpmnEditor";
 import HomePage from "./components/HomePage";
 import EventLog from "./components/EventLog";
+import BestBpmns from "./components/BestBpmns";
+import BpmnViewer from "./components/BpmnViewer";
+
 
 function App() {
   return (
@@ -21,6 +24,8 @@ function App() {
             path="/eventlog"
             element={<EventLog />}
           />
+          <Route path="/bestbpmns" element={<BestBpmns />} />
+          <Route path="/bpmn/:filename" element={<BpmnViewer/>} />
         </Routes>
       </div>
     </Router>
