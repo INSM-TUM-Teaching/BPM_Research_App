@@ -36,6 +36,17 @@ const ActivitiesPopover: React.FC<Props> = ({
   const [pendingSelection, setPendingSelection] = useState<string[]>([]);
   const [removedActivities, setRemovedActivities] = useState<string[]>([]);
 
+  // Calculate the total number of cases
+  const totalCases = allCaseIds.length || 
+    Math.max(...Object.values(activityUsageData), 0);
+
+  // Function to calculate percentage
+  const calculatePercentage = (count: number): string => {
+    if (totalCases === 0) return "0%";
+    const percentage = (count / totalCases) * 100;
+    return `${percentage.toFixed(1)}%`;
+  };
+
   useEffect(() => {
     setLocalSelected(selected);
   }, [selected]);
@@ -192,7 +203,7 @@ const ActivitiesPopover: React.FC<Props> = ({
                         <Typography variant="body2">{activity}</Typography>
                         {activityUsageData[activity] && (
                           <Typography variant="caption" color="textSecondary">
-                            {activityUsageData[activity]} cases
+                            {calculatePercentage(activityUsageData[activity])} of cases
                           </Typography>
                         )}
                       </Box>
@@ -257,7 +268,7 @@ const ActivitiesPopover: React.FC<Props> = ({
                 </ListItemIcon>
                 <ListItemText 
                   primary={activity}
-                  secondary={`Found in ${activityUsageData[activity] || 0} cases`}
+                  secondary={`Found in ${calculatePercentage(activityUsageData[activity] || 0)} of cases`}
                 />
               </ListItem>
             ))}
