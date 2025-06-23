@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles # 导入 StaticFiles
 import os
 from fastapi.responses import FileResponse
-
+from simod.bpmn.auto_bpmn_layout import generate_layout
 
 
 app = FastAPI()
@@ -34,6 +34,13 @@ app.include_router(best_3_results_router)
 
 # 假设 BPMN 文件存在于这个路径
 BPMN_DIR = os.path.join(os.getcwd(), "generated_bpmn")
+
+@app.on_event("startup")
+def generate_bpmn_on_startup():
+    input_bpmn = os.path.join(os.getcwd(), "generated_bpmn/LoanApp_simplified_train.bpmn")
+    output_bpmn = os.path.join(BPMN_DIR, "output.bpmn")
+    os.makedirs(BPMN_DIR, exist_ok=True)
+    generate_layout(input_bpmn, output_bpmn)
 
 @app.get("/bestbpmns/")
 async def list_bpmn_files():

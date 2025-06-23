@@ -343,5 +343,11 @@ def build_flow_based_diagram(root: etree._Element,
                          x=str(way_tgt[0]), y=str(way_tgt[1]))
 
 
+def generate_layout(src_path: str, dest_path: str) -> None:
+    global SRC, DEST
+    SRC = Path(src_path)
+    DEST = Path(dest_path)
+    main()
+
 if __name__ == "__main__":
     main()
