@@ -224,16 +224,6 @@ class ControlFlowOptimizer:
             If the best discovered process model path does not exist after optimization.
         """
 
-        # Start FastAPI server in a background thread
-        fastapi_thread = threading.Thread(target=lambda: ControlFlowOptimizer.start_fastapi_server(self=None), daemon=True)
-        fastapi_thread.start()
-
-        # Wait a bit for the server to start up properly
-        time.sleep(1)
-        print_message("-----------------------------------")
-        print_message("✅ API server started successfully.")
-        print_message("-----------------------------------") 
-
         # Define search space
         self.iteration_index = 0
         search_space = self._define_search_space(settings=self.settings)
