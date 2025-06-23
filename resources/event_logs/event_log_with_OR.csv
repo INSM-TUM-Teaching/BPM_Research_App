@@ -1,0 +1,399 @@
+case_id,activity,resource,start_time,end_time
+Case-1,Review Document,Editor_A,2025-06-06 20:03:26,2025-06-06 20:20:26
+Case-1,Consult Legal Team,Legal_B,2025-06-06 20:20:38,2025-06-06 20:55:38
+Case-1,Verify Sources,Bot_C,2025-06-06 20:21:09,2025-06-06 21:02:09
+Case-1,Finalize Document,Legal_B,2025-06-06 21:08:09,2025-06-06 21:21:09
+Case-10,Review Document,Editor_A,2025-06-21 20:06:26,2025-06-21 20:19:26
+Case-10,Check for Plagiarism,Legal_B,2025-06-21 20:20:01,2025-06-21 20:58:01
+Case-10,Consult Legal Team,Editor_A,2025-06-21 20:20:11,2025-06-21 21:07:11
+Case-10,Verify Sources,Editor_A,2025-06-21 20:20:12,2025-06-21 20:58:12
+Case-10,Finalize Document,Bot_C,2025-06-21 21:15:11,2025-06-21 21:27:11
+Case-100,Review Document,Manager_D,2025-06-08 20:07:26,2025-06-08 20:59:26
+Case-100,Consult Legal Team,Legal_B,2025-06-08 20:59:49,2025-06-08 22:09:49
+Case-100,Check for Plagiarism,Editor_A,2025-06-08 20:59:53,2025-06-08 21:34:53
+Case-100,Verify Sources,Bot_C,2025-06-08 21:00:22,2025-06-08 21:23:22
+Case-100,Finalize Document,Bot_C,2025-06-08 22:18:49,2025-06-08 22:30:49
+Case-11,Review Document,Manager_D,2025-06-13 20:07:26,2025-06-13 20:53:26
+Case-11,Consult Legal Team,Legal_B,2025-06-13 20:53:53,2025-06-13 21:37:53
+Case-11,Check for Plagiarism,Editor_A,2025-06-13 20:53:55,2025-06-13 21:53:55
+Case-11,Verify Sources,Editor_A,2025-06-13 20:54:21,2025-06-13 21:16:21
+Case-11,Finalize Document,Manager_D,2025-06-13 22:01:55,2025-06-13 22:07:55
+Case-12,Review Document,Legal_B,2025-06-09 20:04:26,2025-06-09 20:20:26
+Case-12,Verify Sources,Editor_A,2025-06-09 20:20:44,2025-06-09 21:26:44
+Case-12,Check for Plagiarism,Bot_C,2025-06-09 20:21:01,2025-06-09 20:37:01
+Case-12,Consult Legal Team,Bot_C,2025-06-09 20:21:06,2025-06-09 21:06:06
+Case-12,Finalize Document,Bot_C,2025-06-09 21:29:44,2025-06-09 21:45:44
+Case-13,Review Document,Bot_C,2025-06-02 20:10:26,2025-06-02 20:45:26
+Case-13,Consult Legal Team,Legal_B,2025-06-02 20:45:49,2025-06-02 21:33:49
+Case-13,Verify Sources,Editor_A,2025-06-02 20:46:13,2025-06-02 21:37:13
+Case-13,Finalize Document,Bot_C,2025-06-02 21:47:13,2025-06-02 21:59:13
+Case-14,Review Document,Legal_B,2025-06-12 20:03:26,2025-06-12 20:51:26
+Case-14,Consult Legal Team,Manager_D,2025-06-12 20:51:56,2025-06-12 21:28:56
+Case-14,Finalize Document,Editor_A,2025-06-12 21:32:56,2025-06-12 21:45:56
+Case-15,Review Document,Legal_B,2025-05-29 20:08:26,2025-05-29 20:39:26
+Case-15,Consult Legal Team,Bot_C,2025-05-29 20:39:35,2025-05-29 20:58:35
+Case-15,Verify Sources,Bot_C,2025-05-29 20:39:47,2025-05-29 21:43:47
+Case-15,Check for Plagiarism,Legal_B,2025-05-29 20:40:20,2025-05-29 21:05:20
+Case-15,Finalize Document,Manager_D,2025-05-29 21:51:47,2025-05-29 21:57:47
+Case-16,Review Document,Legal_B,2025-05-31 20:06:26,2025-05-31 20:26:26
+Case-16,Consult Legal Team,Manager_D,2025-05-31 20:26:37,2025-05-31 20:52:37
+Case-16,Finalize Document,Manager_D,2025-05-31 20:58:37,2025-05-31 21:03:37
+Case-17,Review Document,Manager_D,2025-06-12 20:02:26,2025-06-12 20:15:26
+Case-17,Consult Legal Team,Legal_B,2025-06-12 20:15:50,2025-06-12 20:41:50
+Case-17,Verify Sources,Legal_B,2025-06-12 20:15:57,2025-06-12 20:33:57
+Case-17,Check for Plagiarism,Editor_A,2025-06-12 20:16:24,2025-06-12 20:51:24
+Case-17,Finalize Document,Legal_B,2025-06-12 20:54:24,2025-06-12 21:02:24
+Case-18,Review Document,Manager_D,2025-06-02 20:09:26,2025-06-02 20:42:26
+Case-18,Check for Plagiarism,Editor_A,2025-06-02 20:42:49,2025-06-02 21:25:49
+Case-18,Verify Sources,Manager_D,2025-06-02 20:42:59,2025-06-02 21:43:59
+Case-18,Finalize Document,Manager_D,2025-06-02 21:44:59,2025-06-02 21:58:59
+Case-19,Review Document,Manager_D,2025-06-06 20:01:26,2025-06-06 20:50:26
+Case-19,Check for Plagiarism,Legal_B,2025-06-06 20:51:11,2025-06-06 22:04:11
+Case-19,Consult Legal Team,Bot_C,2025-06-06 20:51:23,2025-06-06 21:20:23
+Case-19,Verify Sources,Legal_B,2025-06-06 20:51:23,2025-06-06 21:52:23
+Case-19,Finalize Document,Legal_B,2025-06-06 22:10:11,2025-06-06 22:19:11
+Case-2,Review Document,Bot_C,2025-05-27 20:03:26,2025-05-27 20:42:26
+Case-2,Consult Legal Team,Editor_A,2025-05-27 20:42:33,2025-05-27 21:30:33
+Case-2,Verify Sources,Bot_C,2025-05-27 20:43:20,2025-05-27 21:58:20
+Case-2,Finalize Document,Legal_B,2025-05-27 22:07:20,2025-05-27 22:17:20
+Case-20,Review Document,Legal_B,2025-06-18 20:05:26,2025-06-18 20:38:26
+Case-20,Check for Plagiarism,Legal_B,2025-06-18 20:39:21,2025-06-18 20:56:21
+Case-20,Finalize Document,Bot_C,2025-06-18 20:57:21,2025-06-18 21:14:21
+Case-21,Review Document,Legal_B,2025-06-19 20:04:26,2025-06-19 20:57:26
+Case-21,Verify Sources,Editor_A,2025-06-19 20:57:33,2025-06-19 21:19:33
+Case-21,Check for Plagiarism,Editor_A,2025-06-19 20:57:39,2025-06-19 21:46:39
+Case-21,Finalize Document,Bot_C,2025-06-19 21:51:39,2025-06-19 22:03:39
+Case-22,Review Document,Manager_D,2025-06-03 20:04:26,2025-06-03 20:39:26
+Case-22,Check for Plagiarism,Bot_C,2025-06-03 20:40:08,2025-06-03 21:30:08
+Case-22,Finalize Document,Editor_A,2025-06-03 21:34:08,2025-06-03 21:40:08
+Case-23,Review Document,Manager_D,2025-06-09 20:05:26,2025-06-09 21:04:26
+Case-23,Consult Legal Team,Legal_B,2025-06-09 21:04:42,2025-06-09 21:58:42
+Case-23,Finalize Document,Bot_C,2025-06-09 22:00:42,2025-06-09 22:09:42
+Case-24,Review Document,Legal_B,2025-06-03 20:05:26,2025-06-03 20:40:26
+Case-24,Verify Sources,Manager_D,2025-06-03 20:41:17,2025-06-03 21:41:17
+Case-24,Finalize Document,Editor_A,2025-06-03 21:49:17,2025-06-03 22:06:17
+Case-25,Review Document,Legal_B,2025-06-19 20:10:26,2025-06-19 20:51:26
+Case-25,Consult Legal Team,Manager_D,2025-06-19 20:51:49,2025-06-19 21:50:49
+Case-25,Verify Sources,Legal_B,2025-06-19 20:51:52,2025-06-19 21:10:52
+Case-25,Finalize Document,Editor_A,2025-06-19 21:51:49,2025-06-19 22:02:49
+Case-26,Review Document,Legal_B,2025-06-17 20:01:26,2025-06-17 20:51:26
+Case-26,Check for Plagiarism,Manager_D,2025-06-17 20:51:53,2025-06-17 21:20:53
+Case-26,Verify Sources,Editor_A,2025-06-17 20:51:57,2025-06-17 21:09:57
+Case-26,Finalize Document,Legal_B,2025-06-17 21:25:53,2025-06-17 21:42:53
+Case-27,Review Document,Bot_C,2025-06-07 20:04:26,2025-06-07 20:37:26
+Case-27,Verify Sources,Legal_B,2025-06-07 20:37:58,2025-06-07 21:13:58
+Case-27,Finalize Document,Bot_C,2025-06-07 21:23:58,2025-06-07 21:32:58
+Case-28,Review Document,Bot_C,2025-06-02 20:04:26,2025-06-02 20:40:26
+Case-28,Verify Sources,Manager_D,2025-06-02 20:40:38,2025-06-02 20:56:38
+Case-28,Check for Plagiarism,Manager_D,2025-06-02 20:40:57,2025-06-02 21:28:57
+Case-28,Finalize Document,Legal_B,2025-06-02 21:32:57,2025-06-02 21:49:57
+Case-29,Review Document,Manager_D,2025-06-03 20:10:26,2025-06-03 20:23:26
+Case-29,Check for Plagiarism,Bot_C,2025-06-03 20:24:13,2025-06-03 21:00:13
+Case-29,Finalize Document,Editor_A,2025-06-03 21:01:13,2025-06-03 21:16:13
+Case-3,Review Document,Bot_C,2025-06-20 20:04:26,2025-06-20 20:14:26
+Case-3,Consult Legal Team,Legal_B,2025-06-20 20:14:39,2025-06-20 20:31:39
+Case-3,Finalize Document,Legal_B,2025-06-20 20:35:39,2025-06-20 20:45:39
+Case-30,Review Document,Editor_A,2025-06-13 20:01:26,2025-06-13 20:26:26
+Case-30,Verify Sources,Legal_B,2025-06-13 20:26:36,2025-06-13 21:00:36
+Case-30,Check for Plagiarism,Bot_C,2025-06-13 20:27:25,2025-06-13 21:23:25
+Case-30,Finalize Document,Legal_B,2025-06-13 21:28:25,2025-06-13 21:40:25
+Case-31,Review Document,Bot_C,2025-06-09 20:05:26,2025-06-09 20:51:26
+Case-31,Check for Plagiarism,Bot_C,2025-06-09 20:51:33,2025-06-09 21:12:33
+Case-31,Finalize Document,Editor_A,2025-06-09 21:21:33,2025-06-09 21:36:33
+Case-32,Review Document,Editor_A,2025-06-06 20:07:26,2025-06-06 20:22:26
+Case-32,Consult Legal Team,Manager_D,2025-06-06 20:22:33,2025-06-06 21:35:33
+Case-32,Check for Plagiarism,Bot_C,2025-06-06 20:22:51,2025-06-06 20:56:51
+Case-32,Verify Sources,Manager_D,2025-06-06 20:23:02,2025-06-06 21:19:02
+Case-32,Finalize Document,Legal_B,2025-06-06 21:37:33,2025-06-06 21:47:33
+Case-33,Review Document,Editor_A,2025-06-11 20:03:26,2025-06-11 20:45:26
+Case-33,Consult Legal Team,Editor_A,2025-06-11 20:45:48,2025-06-11 21:16:48
+Case-33,Verify Sources,Editor_A,2025-06-11 20:45:50,2025-06-11 21:09:50
+Case-33,Check for Plagiarism,Manager_D,2025-06-11 20:46:08,2025-06-11 21:02:08
+Case-33,Finalize Document,Bot_C,2025-06-11 21:23:48,2025-06-11 21:39:48
+Case-34,Review Document,Legal_B,2025-06-01 20:08:26,2025-06-01 20:37:26
+Case-34,Consult Legal Team,Editor_A,2025-06-01 20:37:32,2025-06-01 21:30:32
+Case-34,Verify Sources,Manager_D,2025-06-01 20:38:01,2025-06-01 21:13:01
+Case-34,Check for Plagiarism,Editor_A,2025-06-01 20:38:06,2025-06-01 21:00:06
+Case-34,Finalize Document,Editor_A,2025-06-01 21:40:32,2025-06-01 21:47:32
+Case-35,Review Document,Legal_B,2025-06-15 20:03:26,2025-06-15 20:32:26
+Case-35,Verify Sources,Legal_B,2025-06-15 20:32:52,2025-06-15 20:53:52
+Case-35,Consult Legal Team,Bot_C,2025-06-15 20:33:05,2025-06-15 21:45:05
+Case-35,Check for Plagiarism,Bot_C,2025-06-15 20:33:19,2025-06-15 21:45:19
+Case-35,Finalize Document,Bot_C,2025-06-15 21:46:19,2025-06-15 21:51:19
+Case-36,Review Document,Manager_D,2025-06-05 20:08:26,2025-06-05 20:20:26
+Case-36,Consult Legal Team,Editor_A,2025-06-05 20:20:36,2025-06-05 21:25:36
+Case-36,Verify Sources,Bot_C,2025-06-05 20:21:15,2025-06-05 20:58:15
+Case-36,Finalize Document,Manager_D,2025-06-05 21:34:36,2025-06-05 21:47:36
+Case-37,Review Document,Manager_D,2025-06-02 20:06:26,2025-06-02 20:37:26
+Case-37,Check for Plagiarism,Legal_B,2025-06-02 20:37:57,2025-06-02 21:41:57
+Case-37,Consult Legal Team,Manager_D,2025-06-02 20:38:05,2025-06-02 21:38:05
+Case-37,Verify Sources,Bot_C,2025-06-02 20:38:17,2025-06-02 21:53:17
+Case-37,Finalize Document,Editor_A,2025-06-02 21:57:17,2025-06-02 22:04:17
+Case-38,Review Document,Legal_B,2025-06-06 20:01:26,2025-06-06 20:17:26
+Case-38,Check for Plagiarism,Manager_D,2025-06-06 20:18:14,2025-06-06 21:16:14
+Case-38,Finalize Document,Editor_A,2025-06-06 21:17:14,2025-06-06 21:33:14
+Case-39,Review Document,Legal_B,2025-06-08 20:01:26,2025-06-08 20:30:26
+Case-39,Consult Legal Team,Manager_D,2025-06-08 20:30:35,2025-06-08 21:35:35
+Case-39,Verify Sources,Legal_B,2025-06-08 20:31:00,2025-06-08 21:34:00
+Case-39,Check for Plagiarism,Manager_D,2025-06-08 20:31:08,2025-06-08 21:26:08
+Case-39,Finalize Document,Legal_B,2025-06-08 21:37:35,2025-06-08 21:44:35
+Case-4,Review Document,Bot_C,2025-06-18 20:08:26,2025-06-18 20:33:26
+Case-4,Verify Sources,Bot_C,2025-06-18 20:33:48,2025-06-18 21:39:48
+Case-4,Finalize Document,Legal_B,2025-06-18 21:46:48,2025-06-18 21:59:48
+Case-40,Review Document,Editor_A,2025-06-06 20:09:26,2025-06-06 20:31:26
+Case-40,Check for Plagiarism,Bot_C,2025-06-06 20:32:20,2025-06-06 21:44:20
+Case-40,Finalize Document,Manager_D,2025-06-06 21:52:20,2025-06-06 22:00:20
+Case-41,Review Document,Manager_D,2025-05-27 20:09:26,2025-05-27 21:01:26
+Case-41,Check for Plagiarism,Manager_D,2025-05-27 21:01:42,2025-05-27 22:06:42
+Case-41,Consult Legal Team,Editor_A,2025-05-27 21:01:52,2025-05-27 22:01:52
+Case-41,Verify Sources,Editor_A,2025-05-27 21:02:02,2025-05-27 22:02:02
+Case-41,Finalize Document,Bot_C,2025-05-27 22:09:42,2025-05-27 22:19:42
+Case-42,Review Document,Manager_D,2025-05-27 20:02:26,2025-05-27 20:36:26
+Case-42,Verify Sources,Legal_B,2025-05-27 20:37:22,2025-05-27 21:20:22
+Case-42,Finalize Document,Bot_C,2025-05-27 21:24:22,2025-05-27 21:37:22
+Case-43,Review Document,Legal_B,2025-06-03 20:05:26,2025-06-03 20:32:26
+Case-43,Verify Sources,Manager_D,2025-06-03 20:32:41,2025-06-03 21:21:41
+Case-43,Consult Legal Team,Editor_A,2025-06-03 20:32:54,2025-06-03 21:30:54
+Case-43,Check for Plagiarism,Editor_A,2025-06-03 20:32:56,2025-06-03 21:45:56
+Case-43,Finalize Document,Legal_B,2025-06-03 21:50:56,2025-06-03 22:01:56
+Case-44,Review Document,Bot_C,2025-05-30 20:10:26,2025-05-30 20:31:26
+Case-44,Verify Sources,Manager_D,2025-05-30 20:31:53,2025-05-30 21:32:53
+Case-44,Finalize Document,Manager_D,2025-05-30 21:38:53,2025-05-30 21:53:53
+Case-45,Review Document,Manager_D,2025-06-17 20:02:26,2025-06-17 20:24:26
+Case-45,Consult Legal Team,Bot_C,2025-06-17 20:25:14,2025-06-17 20:40:14
+Case-45,Finalize Document,Editor_A,2025-06-17 20:43:14,2025-06-17 20:48:14
+Case-46,Review Document,Editor_A,2025-06-13 20:01:26,2025-06-13 20:25:26
+Case-46,Verify Sources,Legal_B,2025-06-13 20:26:15,2025-06-13 21:23:15
+Case-46,Finalize Document,Editor_A,2025-06-13 21:30:15,2025-06-13 21:43:15
+Case-47,Review Document,Editor_A,2025-06-03 20:09:26,2025-06-03 20:55:26
+Case-47,Verify Sources,Legal_B,2025-06-03 20:55:43,2025-06-03 22:05:43
+Case-47,Consult Legal Team,Bot_C,2025-06-03 20:56:21,2025-06-03 21:29:21
+Case-47,Check for Plagiarism,Legal_B,2025-06-03 20:56:26,2025-06-03 22:00:26
+Case-47,Finalize Document,Bot_C,2025-06-03 22:15:43,2025-06-03 22:23:43
+Case-48,Review Document,Manager_D,2025-06-15 20:01:26,2025-06-15 20:30:26
+Case-48,Check for Plagiarism,Bot_C,2025-06-15 20:31:13,2025-06-15 20:47:13
+Case-48,Consult Legal Team,Legal_B,2025-06-15 20:31:23,2025-06-15 20:55:23
+Case-48,Finalize Document,Bot_C,2025-06-15 21:01:23,2025-06-15 21:11:23
+Case-49,Review Document,Bot_C,2025-06-10 20:02:26,2025-06-10 20:30:26
+Case-49,Consult Legal Team,Editor_A,2025-06-10 20:31:05,2025-06-10 21:25:05
+Case-49,Finalize Document,Bot_C,2025-06-10 21:34:05,2025-06-10 21:45:05
+Case-5,Review Document,Bot_C,2025-06-21 20:10:26,2025-06-21 20:28:26
+Case-5,Consult Legal Team,Legal_B,2025-06-21 20:28:50,2025-06-21 21:29:50
+Case-5,Verify Sources,Bot_C,2025-06-21 20:29:07,2025-06-21 21:28:07
+Case-5,Finalize Document,Legal_B,2025-06-21 21:35:50,2025-06-21 21:54:50
+Case-50,Review Document,Manager_D,2025-05-30 20:02:26,2025-05-30 20:54:26
+Case-50,Check for Plagiarism,Bot_C,2025-05-30 20:54:34,2025-05-30 21:56:34
+Case-50,Consult Legal Team,Editor_A,2025-05-30 20:55:18,2025-05-30 21:52:18
+Case-50,Finalize Document,Manager_D,2025-05-30 21:59:34,2025-05-30 22:06:34
+Case-51,Review Document,Manager_D,2025-06-21 20:08:26,2025-06-21 20:22:26
+Case-51,Check for Plagiarism,Manager_D,2025-06-21 20:22:37,2025-06-21 21:18:37
+Case-51,Verify Sources,Legal_B,2025-06-21 20:23:14,2025-06-21 21:35:14
+Case-51,Finalize Document,Editor_A,2025-06-21 21:42:14,2025-06-21 21:58:14
+Case-52,Review Document,Legal_B,2025-05-25 20:02:26,2025-05-25 20:47:26
+Case-52,Verify Sources,Editor_A,2025-05-25 20:47:33,2025-05-25 21:43:33
+Case-52,Consult Legal Team,Manager_D,2025-05-25 20:48:14,2025-05-25 21:59:14
+Case-52,Finalize Document,Editor_A,2025-05-25 22:02:14,2025-05-25 22:14:14
+Case-53,Review Document,Manager_D,2025-06-19 20:08:26,2025-06-19 21:06:26
+Case-53,Check for Plagiarism,Manager_D,2025-06-19 21:06:32,2025-06-19 22:16:32
+Case-53,Verify Sources,Manager_D,2025-06-19 21:07:07,2025-06-19 22:07:07
+Case-53,Consult Legal Team,Legal_B,2025-06-19 21:07:23,2025-06-19 21:24:23
+Case-53,Finalize Document,Bot_C,2025-06-19 22:18:32,2025-06-19 22:38:32
+Case-54,Review Document,Editor_A,2025-06-07 20:01:26,2025-06-07 20:21:26
+Case-54,Check for Plagiarism,Editor_A,2025-06-07 20:22:22,2025-06-07 21:15:22
+Case-54,Finalize Document,Legal_B,2025-06-07 21:18:22,2025-06-07 21:28:22
+Case-55,Review Document,Editor_A,2025-06-11 20:04:26,2025-06-11 20:40:26
+Case-55,Consult Legal Team,Legal_B,2025-06-11 20:40:47,2025-06-11 21:00:47
+Case-55,Check for Plagiarism,Manager_D,2025-06-11 20:40:50,2025-06-11 21:44:50
+Case-55,Verify Sources,Editor_A,2025-06-11 20:41:01,2025-06-11 21:22:01
+Case-55,Finalize Document,Bot_C,2025-06-11 21:47:50,2025-06-11 22:04:50
+Case-56,Review Document,Legal_B,2025-06-09 20:08:26,2025-06-09 20:55:26
+Case-56,Verify Sources,Legal_B,2025-06-09 20:56:02,2025-06-09 22:11:02
+Case-56,Check for Plagiarism,Legal_B,2025-06-09 20:56:17,2025-06-09 21:20:17
+Case-56,Finalize Document,Bot_C,2025-06-09 22:15:02,2025-06-09 22:25:02
+Case-57,Review Document,Manager_D,2025-06-20 20:09:26,2025-06-20 20:56:26
+Case-57,Check for Plagiarism,Bot_C,2025-06-20 20:56:39,2025-06-20 21:17:39
+Case-57,Finalize Document,Bot_C,2025-06-20 21:27:39,2025-06-20 21:46:39
+Case-58,Review Document,Manager_D,2025-06-09 20:05:26,2025-06-09 20:40:26
+Case-58,Consult Legal Team,Bot_C,2025-06-09 20:41:06,2025-06-09 21:16:06
+Case-58,Finalize Document,Manager_D,2025-06-09 21:22:06,2025-06-09 21:29:06
+Case-59,Review Document,Editor_A,2025-06-15 20:06:26,2025-06-15 20:17:26
+Case-59,Consult Legal Team,Editor_A,2025-06-15 20:17:31,2025-06-15 21:27:31
+Case-59,Check for Plagiarism,Bot_C,2025-06-15 20:17:44,2025-06-15 20:33:44
+Case-59,Verify Sources,Editor_A,2025-06-15 20:18:17,2025-06-15 21:10:17
+Case-59,Finalize Document,Legal_B,2025-06-15 21:34:31,2025-06-15 21:49:31
+Case-6,Review Document,Editor_A,2025-06-22 20:06:26,2025-06-22 20:22:26
+Case-6,Consult Legal Team,Manager_D,2025-06-22 20:22:42,2025-06-22 21:15:42
+Case-6,Check for Plagiarism,Legal_B,2025-06-22 20:22:42,2025-06-22 21:06:42
+Case-6,Finalize Document,Bot_C,2025-06-22 21:20:42,2025-06-22 21:31:42
+Case-60,Review Document,Legal_B,2025-06-05 20:06:26,2025-06-05 20:43:26
+Case-60,Consult Legal Team,Legal_B,2025-06-05 20:44:00,2025-06-05 21:08:00
+Case-60,Finalize Document,Manager_D,2025-06-05 21:14:00,2025-06-05 21:19:00
+Case-61,Review Document,Bot_C,2025-06-20 20:09:26,2025-06-20 21:04:26
+Case-61,Check for Plagiarism,Manager_D,2025-06-20 21:04:31,2025-06-20 21:30:31
+Case-61,Finalize Document,Editor_A,2025-06-20 21:39:31,2025-06-20 21:50:31
+Case-62,Review Document,Legal_B,2025-06-07 20:04:26,2025-06-07 20:42:26
+Case-62,Verify Sources,Manager_D,2025-06-07 20:43:15,2025-06-07 21:19:15
+Case-62,Finalize Document,Manager_D,2025-06-07 21:22:15,2025-06-07 21:39:15
+Case-63,Review Document,Editor_A,2025-06-03 20:08:26,2025-06-03 21:01:26
+Case-63,Verify Sources,Manager_D,2025-06-03 21:02:10,2025-06-03 21:43:10
+Case-63,Check for Plagiarism,Legal_B,2025-06-03 21:02:15,2025-06-03 21:56:15
+Case-63,Consult Legal Team,Editor_A,2025-06-03 21:02:20,2025-06-03 21:33:20
+Case-63,Finalize Document,Manager_D,2025-06-03 21:58:15,2025-06-03 22:15:15
+Case-64,Review Document,Manager_D,2025-06-12 20:09:26,2025-06-12 20:29:26
+Case-64,Verify Sources,Manager_D,2025-06-12 20:29:53,2025-06-12 21:21:53
+Case-64,Consult Legal Team,Editor_A,2025-06-12 20:30:15,2025-06-12 21:21:15
+Case-64,Check for Plagiarism,Editor_A,2025-06-12 20:30:16,2025-06-12 21:29:16
+Case-64,Finalize Document,Legal_B,2025-06-12 21:30:16,2025-06-12 21:44:16
+Case-65,Review Document,Manager_D,2025-05-26 20:02:26,2025-05-26 20:46:26
+Case-65,Verify Sources,Editor_A,2025-05-26 20:46:34,2025-05-26 21:22:34
+Case-65,Check for Plagiarism,Manager_D,2025-05-26 20:46:37,2025-05-26 21:23:37
+Case-65,Consult Legal Team,Bot_C,2025-05-26 20:47:23,2025-05-26 21:33:23
+Case-65,Finalize Document,Bot_C,2025-05-26 21:36:23,2025-05-26 21:52:23
+Case-66,Review Document,Bot_C,2025-06-12 20:10:26,2025-06-12 20:24:26
+Case-66,Check for Plagiarism,Legal_B,2025-06-12 20:24:42,2025-06-12 20:55:42
+Case-66,Finalize Document,Editor_A,2025-06-12 21:01:42,2025-06-12 21:19:42
+Case-67,Review Document,Editor_A,2025-06-07 20:03:26,2025-06-07 21:02:26
+Case-67,Verify Sources,Bot_C,2025-06-07 21:02:34,2025-06-07 21:55:34
+Case-67,Consult Legal Team,Manager_D,2025-06-07 21:02:36,2025-06-07 21:18:36
+Case-67,Check for Plagiarism,Editor_A,2025-06-07 21:03:12,2025-06-07 21:58:12
+Case-67,Finalize Document,Bot_C,2025-06-07 21:59:12,2025-06-07 22:18:12
+Case-68,Review Document,Legal_B,2025-06-15 20:05:26,2025-06-15 21:02:26
+Case-68,Check for Plagiarism,Editor_A,2025-06-15 21:02:44,2025-06-15 21:19:44
+Case-68,Finalize Document,Legal_B,2025-06-15 21:23:44,2025-06-15 21:33:44
+Case-69,Review Document,Bot_C,2025-06-13 20:03:26,2025-06-13 20:23:26
+Case-69,Consult Legal Team,Manager_D,2025-06-13 20:23:43,2025-06-13 21:05:43
+Case-69,Finalize Document,Manager_D,2025-06-13 21:13:43,2025-06-13 21:24:43
+Case-7,Review Document,Editor_A,2025-05-24 20:02:26,2025-05-24 20:34:26
+Case-7,Check for Plagiarism,Legal_B,2025-05-24 20:34:32,2025-05-24 21:20:32
+Case-7,Consult Legal Team,Legal_B,2025-05-24 20:35:24,2025-05-24 21:10:24
+Case-7,Finalize Document,Editor_A,2025-05-24 21:22:32,2025-05-24 21:39:32
+Case-70,Review Document,Editor_A,2025-06-06 20:07:26,2025-06-06 20:22:26
+Case-70,Consult Legal Team,Editor_A,2025-06-06 20:22:41,2025-06-06 21:27:41
+Case-70,Verify Sources,Editor_A,2025-06-06 20:23:14,2025-06-06 21:35:14
+Case-70,Check for Plagiarism,Manager_D,2025-06-06 20:23:22,2025-06-06 21:12:22
+Case-70,Finalize Document,Manager_D,2025-06-06 21:38:14,2025-06-06 21:43:14
+Case-71,Review Document,Editor_A,2025-05-25 20:06:26,2025-05-25 20:30:26
+Case-71,Check for Plagiarism,Legal_B,2025-05-25 20:30:38,2025-05-25 21:40:38
+Case-71,Verify Sources,Editor_A,2025-05-25 20:31:09,2025-05-25 21:45:09
+Case-71,Finalize Document,Manager_D,2025-05-25 21:54:09,2025-05-25 22:11:09
+Case-72,Review Document,Editor_A,2025-05-29 20:02:26,2025-05-29 20:21:26
+Case-72,Check for Plagiarism,Bot_C,2025-05-29 20:22:03,2025-05-29 21:20:03
+Case-72,Verify Sources,Legal_B,2025-05-29 20:22:13,2025-05-29 21:05:13
+Case-72,Finalize Document,Bot_C,2025-05-29 21:30:03,2025-05-29 21:37:03
+Case-73,Review Document,Manager_D,2025-06-01 20:03:26,2025-06-01 20:49:26
+Case-73,Check for Plagiarism,Manager_D,2025-06-01 20:49:54,2025-06-01 21:28:54
+Case-73,Verify Sources,Manager_D,2025-06-01 20:50:20,2025-06-01 21:12:20
+Case-73,Finalize Document,Manager_D,2025-06-01 21:36:54,2025-06-01 21:42:54
+Case-74,Review Document,Editor_A,2025-06-19 20:04:26,2025-06-19 20:48:26
+Case-74,Check for Plagiarism,Bot_C,2025-06-19 20:48:40,2025-06-19 21:36:40
+Case-74,Finalize Document,Legal_B,2025-06-19 21:46:40,2025-06-19 21:54:40
+Case-75,Review Document,Editor_A,2025-05-26 20:05:26,2025-05-26 20:21:26
+Case-75,Consult Legal Team,Bot_C,2025-05-26 20:22:26,2025-05-26 21:33:26
+Case-75,Finalize Document,Editor_A,2025-05-26 21:39:26,2025-05-26 21:58:26
+Case-76,Review Document,Bot_C,2025-06-10 20:08:26,2025-06-10 20:36:26
+Case-76,Verify Sources,Editor_A,2025-06-10 20:36:34,2025-06-10 21:18:34
+Case-76,Check for Plagiarism,Manager_D,2025-06-10 20:36:47,2025-06-10 21:04:47
+Case-76,Consult Legal Team,Bot_C,2025-06-10 20:37:05,2025-06-10 20:53:05
+Case-76,Finalize Document,Manager_D,2025-06-10 21:22:34,2025-06-10 21:39:34
+Case-77,Review Document,Bot_C,2025-05-27 20:07:26,2025-05-27 20:24:26
+Case-77,Consult Legal Team,Legal_B,2025-05-27 20:24:55,2025-05-27 20:50:55
+Case-77,Check for Plagiarism,Bot_C,2025-05-27 20:24:57,2025-05-27 21:09:57
+Case-77,Finalize Document,Editor_A,2025-05-27 21:13:57,2025-05-27 21:18:57
+Case-78,Review Document,Legal_B,2025-06-05 20:02:26,2025-06-05 21:01:26
+Case-78,Consult Legal Team,Bot_C,2025-06-05 21:01:39,2025-06-05 21:42:39
+Case-78,Check for Plagiarism,Editor_A,2025-06-05 21:01:42,2025-06-05 22:06:42
+Case-78,Verify Sources,Manager_D,2025-06-05 21:02:24,2025-06-05 21:58:24
+Case-78,Finalize Document,Legal_B,2025-06-05 22:11:42,2025-06-05 22:26:42
+Case-79,Review Document,Manager_D,2025-05-27 20:04:26,2025-05-27 20:55:26
+Case-79,Verify Sources,Bot_C,2025-05-27 20:56:13,2025-05-27 21:32:13
+Case-79,Consult Legal Team,Legal_B,2025-05-27 20:56:17,2025-05-27 21:13:17
+Case-79,Finalize Document,Editor_A,2025-05-27 21:40:13,2025-05-27 21:51:13
+Case-8,Review Document,Editor_A,2025-06-05 20:06:26,2025-06-05 20:47:26
+Case-8,Check for Plagiarism,Bot_C,2025-06-05 20:47:41,2025-06-05 21:35:41
+Case-8,Consult Legal Team,Legal_B,2025-06-05 20:47:44,2025-06-05 21:35:44
+Case-8,Finalize Document,Manager_D,2025-06-05 21:45:44,2025-06-05 22:02:44
+Case-80,Review Document,Legal_B,2025-06-10 20:07:26,2025-06-10 20:22:26
+Case-80,Verify Sources,Manager_D,2025-06-10 20:22:56,2025-06-10 21:18:56
+Case-80,Finalize Document,Bot_C,2025-06-10 21:20:56,2025-06-10 21:35:56
+Case-81,Review Document,Bot_C,2025-05-31 20:04:26,2025-05-31 20:54:26
+Case-81,Verify Sources,Manager_D,2025-05-31 20:54:54,2025-05-31 21:45:54
+Case-81,Check for Plagiarism,Manager_D,2025-05-31 20:55:01,2025-05-31 21:31:01
+Case-81,Finalize Document,Editor_A,2025-05-31 21:46:54,2025-05-31 21:59:54
+Case-82,Review Document,Manager_D,2025-06-06 20:05:26,2025-06-06 20:45:26
+Case-82,Check for Plagiarism,Editor_A,2025-06-06 20:46:12,2025-06-06 21:59:12
+Case-82,Consult Legal Team,Manager_D,2025-06-06 20:46:23,2025-06-06 21:17:23
+Case-82,Verify Sources,Bot_C,2025-06-06 20:46:24,2025-06-06 21:17:24
+Case-82,Finalize Document,Manager_D,2025-06-06 22:06:12,2025-06-06 22:26:12
+Case-83,Review Document,Bot_C,2025-05-29 20:03:26,2025-05-29 20:40:26
+Case-83,Verify Sources,Editor_A,2025-05-29 20:40:59,2025-05-29 21:20:59
+Case-83,Check for Plagiarism,Editor_A,2025-05-29 20:41:02,2025-05-29 21:47:02
+Case-83,Consult Legal Team,Legal_B,2025-05-29 20:41:14,2025-05-29 21:52:14
+Case-83,Finalize Document,Bot_C,2025-05-29 22:00:14,2025-05-29 22:16:14
+Case-84,Review Document,Legal_B,2025-06-12 20:02:26,2025-06-12 20:33:26
+Case-84,Consult Legal Team,Bot_C,2025-06-12 20:33:59,2025-06-12 21:38:59
+Case-84,Check for Plagiarism,Editor_A,2025-06-12 20:34:05,2025-06-12 21:31:05
+Case-84,Finalize Document,Bot_C,2025-06-12 21:42:59,2025-06-12 22:01:59
+Case-85,Review Document,Editor_A,2025-06-12 20:04:26,2025-06-12 20:52:26
+Case-85,Consult Legal Team,Bot_C,2025-06-12 20:53:17,2025-06-12 21:40:17
+Case-85,Check for Plagiarism,Bot_C,2025-06-12 20:53:26,2025-06-12 21:29:26
+Case-85,Finalize Document,Manager_D,2025-06-12 21:43:17,2025-06-12 21:54:17
+Case-86,Review Document,Manager_D,2025-06-09 20:05:26,2025-06-09 20:27:26
+Case-86,Verify Sources,Legal_B,2025-06-09 20:28:09,2025-06-09 20:44:09
+Case-86,Finalize Document,Legal_B,2025-06-09 20:54:09,2025-06-09 21:06:09
+Case-87,Review Document,Legal_B,2025-06-05 20:02:26,2025-06-05 20:50:26
+Case-87,Consult Legal Team,Bot_C,2025-06-05 20:50:36,2025-06-05 21:11:36
+Case-87,Check for Plagiarism,Editor_A,2025-06-05 20:50:54,2025-06-05 21:59:54
+Case-87,Verify Sources,Legal_B,2025-06-05 20:50:58,2025-06-05 21:36:58
+Case-87,Finalize Document,Legal_B,2025-06-05 22:08:54,2025-06-05 22:19:54
+Case-88,Review Document,Bot_C,2025-06-19 20:02:26,2025-06-19 20:15:26
+Case-88,Check for Plagiarism,Bot_C,2025-06-19 20:15:45,2025-06-19 21:17:45
+Case-88,Verify Sources,Editor_A,2025-06-19 20:16:19,2025-06-19 20:44:19
+Case-88,Consult Legal Team,Legal_B,2025-06-19 20:16:21,2025-06-19 21:04:21
+Case-88,Finalize Document,Legal_B,2025-06-19 21:19:45,2025-06-19 21:30:45
+Case-89,Review Document,Legal_B,2025-06-03 20:08:26,2025-06-03 20:49:26
+Case-89,Verify Sources,Editor_A,2025-06-03 20:49:41,2025-06-03 21:49:41
+Case-89,Finalize Document,Legal_B,2025-06-03 21:51:41,2025-06-03 21:59:41
+Case-9,Review Document,Bot_C,2025-06-22 20:03:26,2025-06-22 20:29:26
+Case-9,Check for Plagiarism,Legal_B,2025-06-22 20:30:20,2025-06-22 20:47:20
+Case-9,Finalize Document,Bot_C,2025-06-22 20:54:20,2025-06-22 21:11:20
+Case-90,Review Document,Bot_C,2025-06-02 20:06:26,2025-06-02 20:58:26
+Case-90,Verify Sources,Legal_B,2025-06-02 20:58:59,2025-06-02 21:58:59
+Case-90,Check for Plagiarism,Bot_C,2025-06-02 20:59:15,2025-06-02 22:09:15
+Case-90,Finalize Document,Bot_C,2025-06-02 22:16:15,2025-06-02 22:27:15
+Case-91,Review Document,Manager_D,2025-06-19 20:07:26,2025-06-19 20:36:26
+Case-91,Verify Sources,Bot_C,2025-06-19 20:37:02,2025-06-19 21:17:02
+Case-91,Finalize Document,Legal_B,2025-06-19 21:19:02,2025-06-19 21:31:02
+Case-92,Review Document,Legal_B,2025-06-06 20:05:26,2025-06-06 20:16:26
+Case-92,Consult Legal Team,Bot_C,2025-06-06 20:16:39,2025-06-06 21:02:39
+Case-92,Verify Sources,Editor_A,2025-06-06 20:16:52,2025-06-06 20:37:52
+Case-92,Check for Plagiarism,Manager_D,2025-06-06 20:16:59,2025-06-06 21:19:59
+Case-92,Finalize Document,Editor_A,2025-06-06 21:27:59,2025-06-06 21:37:59
+Case-93,Review Document,Manager_D,2025-06-17 20:02:26,2025-06-17 20:18:26
+Case-93,Check for Plagiarism,Legal_B,2025-06-17 20:18:54,2025-06-17 21:14:54
+Case-93,Verify Sources,Editor_A,2025-06-17 20:18:57,2025-06-17 20:46:57
+Case-93,Consult Legal Team,Bot_C,2025-06-17 20:19:14,2025-06-17 21:02:14
+Case-93,Finalize Document,Legal_B,2025-06-17 21:24:54,2025-06-17 21:42:54
+Case-94,Review Document,Manager_D,2025-06-04 20:05:26,2025-06-04 20:18:26
+Case-94,Check for Plagiarism,Manager_D,2025-06-04 20:18:57,2025-06-04 20:33:57
+Case-94,Verify Sources,Manager_D,2025-06-04 20:19:03,2025-06-04 20:35:03
+Case-94,Consult Legal Team,Manager_D,2025-06-04 20:19:21,2025-06-04 21:31:21
+Case-94,Finalize Document,Manager_D,2025-06-04 21:40:21,2025-06-04 21:58:21
+Case-95,Review Document,Bot_C,2025-06-10 20:10:26,2025-06-10 20:32:26
+Case-95,Verify Sources,Bot_C,2025-06-10 20:32:52,2025-06-10 20:56:52
+Case-95,Finalize Document,Bot_C,2025-06-10 21:04:52,2025-06-10 21:12:52
+Case-96,Review Document,Bot_C,2025-05-30 20:10:26,2025-05-30 20:48:26
+Case-96,Check for Plagiarism,Editor_A,2025-05-30 20:48:34,2025-05-30 21:57:34
+Case-96,Verify Sources,Bot_C,2025-05-30 20:49:19,2025-05-30 21:57:19
+Case-96,Finalize Document,Legal_B,2025-05-30 22:01:34,2025-05-30 22:06:34
+Case-97,Review Document,Legal_B,2025-05-31 20:03:26,2025-05-31 20:16:26
+Case-97,Consult Legal Team,Manager_D,2025-05-31 20:16:46,2025-05-31 20:45:46
+Case-97,Check for Plagiarism,Bot_C,2025-05-31 20:17:15,2025-05-31 20:32:15
+Case-97,Finalize Document,Manager_D,2025-05-31 20:49:46,2025-05-31 20:54:46
+Case-98,Review Document,Bot_C,2025-06-04 20:03:26,2025-06-04 20:14:26
+Case-98,Consult Legal Team,Legal_B,2025-06-04 20:14:58,2025-06-04 21:17:58
+Case-98,Finalize Document,Legal_B,2025-06-04 21:25:58,2025-06-04 21:44:58
+Case-99,Review Document,Manager_D,2025-06-11 20:04:26,2025-06-11 20:16:26
+Case-99,Verify Sources,Legal_B,2025-06-11 20:16:49,2025-06-11 21:05:49
+Case-99,Check for Plagiarism,Manager_D,2025-06-11 20:17:11,2025-06-11 20:43:11
+Case-99,Consult Legal Team,Bot_C,2025-06-11 20:17:16,2025-06-11 21:29:16
+Case-99,Finalize Document,Legal_B,2025-06-11 21:37:16,2025-06-11 21:46:16
