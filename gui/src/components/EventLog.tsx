@@ -7,12 +7,13 @@ import {
 } from "@mui/material";
 import { parseISO } from "date-fns";
 import DateTimeRangePicker from "./DateTimeRangePicker";
-import ActivitiesPopover from "./ActivitiesPopover";
+import ActivitiesPopover, { ActivityFilterMode } from "./ActivitiesPopover"; // Correct import with type
 import CasesPopover from "./CasesPopover";
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import FolderIcon from '@mui/icons-material/Folder';
 import CategoryIcon from '@mui/icons-material/Category';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import InfoIcon from '@mui/icons-material/Info';
 //////##/////////////
 
 const EventLog: React.FC = () => {
@@ -48,6 +49,14 @@ const EventLog: React.FC = () => {
 
   // Add this state for refresh loading
   const [refreshLoading, setRefreshLoading] = useState(false);
+
+  // Add this state for activity filter mode
+  const [activityFilterMode, setActivityFilterMode] = useState<ActivityFilterMode>('rows');
+
+  // Add these states somewhere after the other state declarations (around line 40-50)
+  const [dateFilteredCount, setDateFilteredCount] = useState<number | null>(null);
+  const [activityFilteredCount, setActivityFilteredCount] = useState<number | null>(null);
+  const [caseFilteredCount, setCaseFilteredCount] = useState<number | null>(null);
 
   const fetchAllEventLogs = async () => {
   setLoading(true);
@@ -167,7 +176,7 @@ const EventLog: React.FC = () => {
     
     logs.forEach((row: any) => {
       if (row.activity) activitiesSet.add(row.activity);
-      if (row.case_id) casesSet.add(row.case_id);
+      if (row.case_id !== undefined && row.case_id !== null) casesSet.add(row.case_id);
       
       // Extract dates - check all potential date fields
       const dateFields = ['start_time', 'end_time', 'enabled_time'];
@@ -205,7 +214,7 @@ const EventLog: React.FC = () => {
     const casesWithActivity: { [activity: string]: Set<string> } = {};
     
     logs.forEach((row: any) => {
-      if (row.activity && row.case_id) {
+      if (row.activity && row.case_id !== undefined && row.case_id !== null) {
         if (!casesWithActivity[row.activity]) {
           casesWithActivity[row.activity] = new Set();
         }
@@ -253,16 +262,46 @@ const EventLog: React.FC = () => {
     setCurrentPage(1);
   }, [selectedActivities, selectedCaseIds, dateRange]);
 
+  // Move the cases calculation to a separate useMemo
+  const casesWithExcludedActivities = useMemo(() => {
+    if (activityFilterMode === 'cases' && allActivities.length > selectedActivities.length) {
+      const excludedActivities = allActivities.filter(activity => !selectedActivities.includes(activity));
+      const casesSet = new Set<string>();
+      
+      // Find all cases that contain any excluded activities
+      allEventLogs.forEach(log => {
+        if (log.activity && 
+            excludedActivities.includes(log.activity) && 
+            log.case_id !== undefined && log.case_id !== null && 
+            !casesSet.has(log.case_id)) {
+          casesSet.add(log.case_id);
+        }
+      });
+      
+      return casesSet;
+    }
+    
+    return new Set<string>();
+  }, [allEventLogs, selectedActivities, allActivities, activityFilterMode]);
+
   // Calculate filtered logs by applying date, activity, and status filters
   const filteredLogs = useMemo(() => {
     const [start, end] = dateRange;
     
     return allEventLogs.filter((log) => {
+      // Activity check
       const inActivity = selectedActivities.length === 0 || 
-                        (log.activity && selectedActivities.includes(log.activity));
+                        (log.activity !== undefined && selectedActivities.includes(log.activity));
       
+      // Case check
       const inCase = selectedCaseIds.length === 0 || 
-                    (log.case_id && selectedCaseIds.includes(log.case_id));
+                    (log.case_id !== undefined && log.case_id !== null && 
+                     selectedCaseIds.includes(log.case_id));
+      
+      // For 'cases' mode, exclude cases that have excluded activities
+      const notInExcludedCases = activityFilterMode !== 'cases' || 
+                         log.case_id === undefined || log.case_id === null || 
+                         !casesWithExcludedActivities.has(log.case_id);
       
       // Date check
       let inDate = true;
@@ -276,9 +315,14 @@ const EventLog: React.FC = () => {
         }
       }
       
-      return inActivity && inCase && inDate;
+      // Combine all filters based on the filter mode
+      if (activityFilterMode === 'cases') {
+        return inCase && inDate && notInExcludedCases;
+      } else {
+        return inActivity && inCase && inDate;
+      }
     });
-  }, [allEventLogs, dateRange, selectedActivities, selectedCaseIds]);
+  }, [allEventLogs, dateRange, selectedActivities, selectedCaseIds, activityFilterMode, casesWithExcludedActivities]);
 
   // Paginated data
   const pagedLogs = useMemo(() => {
@@ -395,11 +439,13 @@ const EventLog: React.FC = () => {
   // Create wrapper functions for filters to show loading state
 
   // For activities filter
-  const handleApplyActivities = (selected: string[]) => {
+  const handleApplyActivities = (selected: string[], filterMode: ActivityFilterMode = 'rows') => {
     setFilterLoading(true);
     setActivityAnchorEl(null);
+    
     setTimeout(() => {
       setSelectedActivities(selected);
+      setActivityFilterMode(filterMode);
       setFilterLoading(false);
     }, 600);
   };
@@ -475,6 +521,91 @@ const EventLog: React.FC = () => {
       throw error;
     }
   };
+
+  // Add this function just before the return statement in your component
+  const isFilterActive = () => {
+    // If any filters are active, return true
+    const allActivitiesSelected = selectedActivities.length === allActivities.length && 
+      allActivities.every(a => selectedActivities.includes(a));
+      
+    const allCasesSelected = selectedCaseIds.length === allCaseIds.length && 
+      allCaseIds.every(c => selectedCaseIds.includes(c));
+    
+    // Check date range - consider it unfiltered if it's the full range or not set
+    let dateRangeIsFullRange = true;
+    if (dateRange[0] && dateRange[1] && minLogDate && maxLogDate) {
+      // Check if date range matches the min-max range (within 1 second tolerance)
+      const startDiff = Math.abs(dateRange[0].getTime() - minLogDate.getTime());
+      const endDiff = Math.abs(dateRange[1].getTime() - maxLogDate.getTime());
+      dateRangeIsFullRange = startDiff < 1000 && endDiff < 1000;
+    }
+    
+    return !allActivitiesSelected || !allCasesSelected || !dateRangeIsFullRange || activityFilterMode === 'cases';
+  };
+
+  // This will calculate the impact of each filter
+  useEffect(() => {
+    if (allEventLogs.length === 0) return;
+
+    // Calculate date filter impact
+    const [start, end] = dateRange;
+    if (start && end) {
+      const dateFiltered = allEventLogs.filter(log => {
+        if (!log.start_time) return true;
+        try {
+          const logDate = parseISO(log.start_time);
+          return logDate.getTime() >= start.getTime() && logDate.getTime() <= end.getTime();
+        } catch (e) {
+          return true;
+        }
+      });
+      setDateFilteredCount(dateFiltered.length);
+      
+      // Calculate activity filter impact (from date filtered)
+      if (selectedActivities.length < allActivities.length) {
+        const activityFiltered = dateFiltered.filter(log => {
+          if (activityFilterMode === 'cases') {
+            return log.case_id === undefined || log.case_id === null || 
+                  !casesWithExcludedActivities.has(String(log.case_id));
+          } else {
+            return log.activity === undefined || selectedActivities.includes(log.activity);
+          }
+        });
+        setActivityFilteredCount(activityFiltered.length);
+      } else {
+        setActivityFilteredCount(dateFiltered.length);
+      }
+    } else {
+      setDateFilteredCount(allEventLogs.length);
+      
+      // Calculate activity filter impact (from all logs)
+      if (selectedActivities.length < allActivities.length) {
+        const activityFiltered = allEventLogs.filter(log => {
+          if (activityFilterMode === 'cases') {
+            return log.case_id === undefined || log.case_id === null || 
+                  !casesWithExcludedActivities.has(String(log.case_id));
+          } else {
+            return log.activity === undefined || selectedActivities.includes(log.activity);
+          }
+        });
+        setActivityFilteredCount(activityFiltered.length);
+      } else {
+        setActivityFilteredCount(allEventLogs.length);
+      }
+    }
+
+    // Calculate case filter impact
+    if (selectedCaseIds.length < allCaseIds.length) {
+      const caseFiltered = filteredLogs.filter(log => 
+        log.case_id === undefined || log.case_id === null || 
+        selectedCaseIds.includes(log.case_id)
+      );
+      setCaseFilteredCount(caseFiltered.length);
+    } else {
+      setCaseFilteredCount(filteredLogs.length);
+    }
+  }, [filteredLogs, allEventLogs, dateRange, selectedActivities, selectedCaseIds, 
+      allActivities, allCaseIds, activityFilterMode, casesWithExcludedActivities]);
 
   return (
     <div style={{ height: "100vh", display: "flex", flexDirection: "column", padding: "16px" }}>
@@ -588,12 +719,55 @@ const EventLog: React.FC = () => {
         </Tooltip>
       </Stack>
 
-      {/* Filtering summary */}
-      {filteredLogs.length !== allEventLogs.length && allEventLogs.length > 0 && (
-        <Box sx={{ mb: 2, mt: -1 }}>
+      {/* Filtering summary with detailed tooltip */}
+      {allEventLogs.length > 0 && (
+        <Box sx={{ mb: 2, mt: -1, display: 'flex', alignItems: 'center' }}>
           <Typography variant="body2" color="textSecondary">
-            <b>Filter active:</b> Showing {filteredLogs.length} / {allEventLogs.length} records ({((filteredLogs.length / allEventLogs.length) * 100).toFixed(1)}%)
+            {isFilterActive() ? (
+              <>
+                <b>Filter active:</b> Showing {filteredLogs.length} / {allEventLogs.length} records ({((filteredLogs.length / allEventLogs.length) * 100).toFixed(1)}%)
+                
+                {activityFilterMode === 'cases' && casesWithExcludedActivities.size > 0 && (
+                  <span style={{ marginLeft: '8px' }}>
+                    <b>Case filter mode:</b> {casesWithExcludedActivities.size} cases completely excluded due to excluded activities.
+                  </span>
+                )}
+              </>
+            ) : (
+              <>
+                <b>No filters active:</b> Showing all {allEventLogs.length} records (100%)
+              </>
+            )}
           </Typography>
+          
+          {/* Info icon with detailed filter tooltip */}
+          {isFilterActive() && (
+            <Tooltip 
+              title={
+                <div>
+                  <b>Filter details:</b><br />
+                  Filtered to {filteredLogs.length} of {allEventLogs.length} records ({((filteredLogs.length / allEventLogs.length) * 100).toFixed(1)}%)
+                  {dateFilteredCount !== null && dateFilteredCount !== allEventLogs.length && (
+                    <> — date filter matched {dateFilteredCount}</>
+                  )}
+                  {activityFilteredCount !== null && activityFilteredCount !== dateFilteredCount && (
+                    <>, activity filter{activityFilterMode === 'cases' ? ' (case mode)' : ''} further reduced to {activityFilteredCount}</>
+                  )}
+                  {caseFilteredCount !== null && caseFilteredCount !== activityFilteredCount && (
+                    <>, case filter further reduced to {caseFilteredCount}</>
+                  )}
+                  .
+                </div>
+              } 
+              arrow
+            >
+              <InfoIcon 
+                color="info" 
+                fontSize="small" 
+                sx={{ ml: 1, cursor: 'pointer' }} 
+              />
+            </Tooltip>
+          )}
         </Box>
       )}
 
@@ -828,6 +1002,7 @@ const EventLog: React.FC = () => {
         onApply={handleApplyActivities}
         activityUsageData={activityUsage}
         allCaseIds={allCaseIds}
+        filterMode={activityFilterMode} // Pass current filter mode
       />
 
       <CasesPopover
