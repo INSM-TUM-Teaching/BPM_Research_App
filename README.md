@@ -95,12 +95,19 @@ of each element:
 ## For developers
 
 To install package in editable mode:
+
 ```shell
 pip install -e .
 ```
 To install package for API requests and responses:
 ```shell
 pip install fastapi uvicorn
+```
+
+To run the file without simod package:
+
+```shell
+PYTHONPATH=src python -m simod.cli -c resources/config/configuration_example.yml
 ```
 
 ### Testing

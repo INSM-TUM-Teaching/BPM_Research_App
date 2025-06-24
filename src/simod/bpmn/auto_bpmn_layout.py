@@ -10,8 +10,8 @@ from typing import Dict, List, Set, Tuple
 
 from lxml import etree
 
-SRC  = Path("/Users/anisha/Downloads/BPM_Research_App/outputs/20250602_223146_475FFB1B_1E79_4204_A879_15057E0CCE9B/control-flow/LoanApp_simplified_train.bpmn") 
-DEST = Path("output.bpmn")                     
+SRC  = Path("/Users/anisha/Downloads/BPM_Research_App/outputs/XOR/best_result/event_log_with_XOR.bpmn") 
+DEST = Path("/Users/anisha/Downloads/BPM_Research_App/outputs/XOR/best_result/XOR.bpmn")                     
 
 NS = {
     "bpmn":   "http://www.omg.org/spec/BPMN/20100524/MODEL",
