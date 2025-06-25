@@ -226,9 +226,11 @@ async def save_filtered_event_log(data: dict):
             
         # Global değişkene ata
         FILTERED_EVENT_LOG_PATH = str(file_path)
+        SIMOD_STATUS = "completed_filtering"
         SIMOD_CONTINUE_EVENT.set()  # Devam sinyalini ayarla
         
         print(f"Filtrelenmiş event log dosyası kaydedildi: {file_path} ({len(df)} kayıt)")
+        print(f"Simod durumu güncellendi: {SIMOD_STATUS}")
         
         return {
             "status": "success", 
