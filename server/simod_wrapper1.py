@@ -12,9 +12,6 @@ import tkinter as tk
 from tkinter import filedialog
 import yaml
 
-
-# Define global variables (if any)
-########
 # Filter the event log before running Simod
 def main():
     parser = argparse.ArgumentParser(description="Simod wrapper - with event log filtering")
@@ -192,22 +189,6 @@ def extract_event_log_path(config_path):
         else:
             print(f"ERROR: Event log file not found: {abs_path}")
             
-            # Try alternative locations
-            # 1. event_logs folder in Simod Project directory
-            #simod_project_dir = os.path.dirname(os.path.dirname(config_dir))
-            #alt_path = os.path.join(simod_project_dir, "event_logs", os.path.basename(event_log_path))
-            # print(f"Trying alternative location: {alt_path}")
-            # if os.path.exists(alt_path):
-            #     print(f"Event log file found in alternative location: {alt_path}")
-            #     return alt_path
-                
-            # # 2. event_logs folder in BPM_Reserch_App directory
-            # bpm_app_dir = os.path.dirname(config_dir)  # BPM_Reserch_App directory
-            # alt_path2 = os.path.join(bpm_app_dir, "event_logs", os.path.basename(event_log_path))
-            # print(f"Trying second alternative location: {alt_path2}")
-            # if os.path.exists(alt_path2):
-            #     print(f"Event log file found in second alternative location: {alt_path2}")
-            #     return alt_path2
             # 1. event_logs folder relative to config file's parent
             alt_path_1 = Path(config_dir).parent / 'event_logs' / Path(event_log_path).name
             if alt_path_1.exists():
@@ -484,7 +465,6 @@ def run_simod_with_original_config(config_path, event_log_path, additional_args)
         sys.exit(1)
 
     print(f"INFO: Generated temporary config for this run at: {temp_config_path}")
-    # We will only use Method 3 (the 'simod' command) as requested
     # We pass the 'temp_config_path' to simod, NOT the original 'config_path'.
     cmd = ["simod", "--configuration", temp_config_path]
     if additional_args:
@@ -516,51 +496,6 @@ def run_simod_with_original_config(config_path, event_log_path, additional_args)
         print("WARNING: Simod execution failed.")
         
     return exit_code
-
-    # # Find and use the correct command
-    # python_exe = sys.executable
-    
-    # # Try 3 different possible methods
-    # commands_to_try = [
-    #     # Method 1: Run simod.cli module
-    #     [python_exe, "-m", "simod.cli", "--configuration", config_path],
-        
-    #     # Method 2: Run simod.exe directly
-    #     [os.path.join(os.path.dirname(python_exe), "simod.exe"), "--configuration", config_path],
-        
-    #     # Method 3: Run simod with subprocess
-    #     ["simod", "--configuration", config_path]
-    # ]
-    
-    # # Add additional parameters
-    # if additional_args:
-    #     for cmd in commands_to_try:
-    #         cmd.extend(additional_args)
-    
-    # # Try all commands sequentially
-    # for i, cmd in enumerate(commands_to_try):
-    #     try:
-    #         print(f"Trying method {i+1}: {' '.join(cmd)}")
-    #         exit_code = subprocess.call(cmd)
-            
-    #         print("\n" + "="*50)
-    #         print(f"Simod execution completed. Exit code: {exit_code}")
-    #         print("="*50)
-            
-    #         if exit_code == 0:
-    #             print("Successfully completed!")
-    #             return exit_code
-    #         else:
-    #             print(f"Method {i+1} failed, exit code: {exit_code}")
-    #             continue
-                
-    #     except Exception as e:
-    #         print(f"Method {i+1} gave an error: {str(e)}")
-    #         continue
-    
-    # print("WARNING: All execution methods failed.")
-    # return 1
-
 
 def create_temp_config(config_path, event_log_path):
     """
