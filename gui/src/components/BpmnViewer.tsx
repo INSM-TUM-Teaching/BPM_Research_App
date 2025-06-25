@@ -12,7 +12,7 @@ const BpmnViewerPage: React.FC = () => {
 
     const load = async () => {
       try {
-        const response = await fetch(`http://localhost:8000/bestbpmns/${filename}`);
+        const response = await fetch(`http://localhost:8000/top-3-results/${filename}`);
         const xml = await response.text();
         await viewer.importXML(xml);
         const canvas = viewer.get("canvas") as { zoom: (arg: string) => void };
