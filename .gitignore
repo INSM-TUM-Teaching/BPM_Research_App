@@ -13,7 +13,7 @@ input_files
 log/
 .pytest_cache/
 simod-env/
-server/uploaded_logs
+uploaded_logs
 server/server.py
 
 *.dat
