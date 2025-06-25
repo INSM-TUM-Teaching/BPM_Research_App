@@ -9,8 +9,59 @@ from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-####
+
 app = FastAPI()
+
+########## API ENDPOINTS - SIMOD CONTROL FLOW ##########
+
+# Variables for top-3 results
+top_3_results: Optional[List[Dict]] = None
+
+# API for sending top-3 results
+@app.post("/top-3-results/")
+def receive_top_3_results(data: List[Dict] = Body(...)):
+    """Accept the top-3 results and save them in memory."""
+    global top_3_results
+    top_3_results = data
+    return {"message": "Top-3 results received successfully", "count": len(data)}
+
+# API for retrieving the top-3 results
+@app.get("/top-3-results/")
+def get_top_3_results():
+    """Return the top-3 results if available."""
+    if top_3_results is None:
+        return {"message": "No results have been received yet."}
+    return JSONResponse(content={"results": top_3_results})
+
+# Variables for best model selection
+selected_model_path: Optional[Path] = None
+
+class Selection(BaseModel):
+    model_path: str
+
+# API for selecting a model
+@app.post("/select-model/")
+def select_model(selection: Selection):
+    global selected_model_path
+    selected_model_path = Path(selection.model_path)
+    return {"message": "Model selection received", "model_path": str(selected_model_path)}
+
+# API for getting the selected model path
+@app.get("/get-selected-model/")
+def get_selection():
+    if selected_model_path is None:
+        return {"message": "No model has been selected yet"}
+    return {"selected_model_path": str(selected_model_path)}
+
+# API for best model selection state reset
+@app.post("/reset-selected-model/")
+def reset_selected_model():
+    """Reset the selected model path state."""
+    global selected_model_path
+    selected_model_path = None
+    return {"message": "Selection reset"}
+
+########## API ENDPOINTS - EVENT LOGS ##########
 
 # CORS ayarlarını ekleyin - çok önemli!
 app.add_middleware(
@@ -27,16 +78,10 @@ FILTERED_EVENT_LOG_PATH = None
 CURRENT_EVENT_LOG_PATH = None
 SIMOD_STATUS = "idle"  # idle, running, waiting_for_filter, completed, error
 
-# Variables for best model selection
-selected_model_path: Optional[Path] = None
-
-# Variables for top-3 results
-top_3_results: Optional[List[Dict]] = None
-
 # Yükleme dizinini tanımla
 UPLOAD_DIR = Path("uploaded_logs")
 if not UPLOAD_DIR.exists():
-    UPLOAD_DIR.mkdir(parents=True)
+    UPLOAD_DIR.mkdir(parents=True)    
 
 # Ana sayfa için basit endpoint
 @app.get("/")
@@ -368,46 +413,10 @@ async def clear_event_logs():
         error_details = traceback.format_exc()
         print(f"Event log temizleme hatası: {str(e)}")
         print(error_details)
-        raise HTTPException(status_code=500, detail=f"Event log temizlenirken hata oluştu: {str(e)}")
-    
-
-# Best Model Selection Router
-@app.post("/select-model/")
-async def select_model(selection: dict = Body(...)):
-    """Accepts a model selection and saves the path."""
-    global selected_model_path
-    model_path = selection.get("model_path")
-    if not model_path:
-        raise HTTPException(status_code=400, detail="model_path is required")
-    
-    selected_model_path = Path(model_path)
-    return {"message": "Model selection received", "model_path": str(selected_model_path)}
-
-@app.get("/get-selected-model/")
-async def get_selection():
-    """Returns the currently selected model path."""
-    if selected_model_path is None:
-        return {"message": "No model has been selected yet"}
-    return {"selected_model_path": str(selected_model_path)}
-
-# Best Three Results Router
-@app.post("/top-3-results/")
-async def receive_top_3_results(data: List[Dict] = Body(...)):
-    """Accept the top-3 results and save them in memory."""
-    global top_3_results
-    top_3_results = data
-    return {"message": "Top-3 results received successfully", "count": len(data)}
-
-@app.get("/top-3-results/")
-async def get_top_3_results():
-    """Return the top-3 results if available."""
-    if top_3_results is None:
-        return {"message": "No results have been received yet."}
-    return JSONResponse(content={"results": top_3_results})
-
+        raise HTTPException(status_code=500, detail=f"Event log temizlenirken hata oluştu: {str(e)}")    
 
 if __name__ == "__main__":
     import uvicorn
     
     print("FastAPI sunucusu başlatılıyor...")
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")

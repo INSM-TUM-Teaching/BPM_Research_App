@@ -31,9 +31,14 @@ import threading
 import time
 import uvicorn
 import requests
+import os
+import sys
+
+# Add the parent directory of `src` (i.e., BPM_Research_App) to the path so that we can import the FastAPI app from server.py
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../')))
 
 # Import FastAPI app
-from simod.fastapi_server.fastapi_server import app
+from server.server import app
 
 class ControlFlowOptimizer:
     """
@@ -197,12 +202,6 @@ class ControlFlowOptimizer:
         self.iteration_index += 1
 
         return response
-    
-    # Integrating FastAPI server to allow expert-guided BPMN model selection
-    def start_fastapi_server(self):
-        config = uvicorn.Config(app, host="127.0.0.1", port=8000, log_level="info")
-        server = uvicorn.Server(config)
-        server.run()
 
     def run(self) -> HyperoptIterationParams:
         """
@@ -292,10 +291,27 @@ class ControlFlowOptimizer:
         print_message("⏳ Waiting for expert to select a BPMN model via API...")
         print_message("-------------------------------------------------------")
         
+        # Reset the selected model state before starting
+        try:
+            reset_response = requests.post("http://localhost:8000/reset-selected-model/")
+            if reset_response.ok:
+                print_message("--------------------------------------")
+                print_message("✅ Selection state reset successfully.")
+                print_message("--------------------------------------")
+            else:
+                print_message("-------------------------------------------------------------------------")
+                print_message(f"⚠️ Could not reset selection state. Status: {reset_response.status_code}")
+                print_message("-------------------------------------------------------------------------")
+        except Exception as e:
+            print_message("---------------------------------------------")
+            print_message(f"❌ Error resetting selected model state: {e}")
+            print_message("---------------------------------------------")
+
         selected_model_path = None
         while selected_model_path is None:
+            # Now proceed with results generation and GET polling
             try:
-                response = requests.get("http://127.0.0.1:8000/get-selected-model/")
+                response = requests.get("http://localhost:8000/get-selected-model/")
                 data = response.json()
                 if "selected_model_path" in data:
                     selected_model_path = Path(data["selected_model_path"])
