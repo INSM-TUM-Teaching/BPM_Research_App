@@ -13,6 +13,8 @@ input_files
 log/
 .pytest_cache/
 simod-env/
+uploaded_logs
+server/server.py
 
 *.dat
 *.log
@@ -39,3 +41,4 @@ benchmarking/results
 tests/test_benchmarking/logs
 sandbox
 dist/
+
