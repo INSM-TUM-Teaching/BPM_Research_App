@@ -14,7 +14,6 @@ log/
 .pytest_cache/
 simod-env/
 uploaded_logs
-server/server.py
 
 *.dat
 *.log

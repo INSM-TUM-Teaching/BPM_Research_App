@@ -30,7 +30,7 @@ function HomePage() {
                     <Button
             variant="contained"
             color="primary"
-            onClick={() => navigate("/bestbpmns")} // Navigate to /best-bpmns
+            onClick={() => navigate("/top-3-results")} // Navigate to /best-bpmns
           >
             Go to Best BPMNs
           </Button>
