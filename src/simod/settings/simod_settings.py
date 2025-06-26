@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Union, Optional
 
 import yaml
+
 from pydantic import BaseModel
 
 from .common_settings import CommonSettings
@@ -190,8 +191,9 @@ class SimodSettings(BaseModel):
         if self.extraneous_activity_delays is not None:
             dictionary["extraneous_activity_delays"] = self.extraneous_activity_delays.to_dict()
         return dictionary
-
+    
     def to_yaml(self, output_dir: Path) -> Path:
+
         """
         Saves the configuration to a YAML file in the provided output directory.
 
@@ -207,6 +209,7 @@ class SimodSettings(BaseModel):
         """
         data = yaml.dump(self.to_dict(), sort_keys=False)
         output_path = output_dir / "configuration.yaml"
+
         with output_path.open("w") as f:
             f.write(data)
         return output_path

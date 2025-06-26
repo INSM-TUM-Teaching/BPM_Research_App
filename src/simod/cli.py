@@ -92,6 +92,7 @@ def main(
     runtimes = RuntimeMeter()
 
     # Read and preprocess event log
+    click.echo(">>> Preprocessing event log...")
     runtimes.start(RuntimeMeter.PREPROCESSING)
     event_log = EventLog.from_path(
         log_ids=settings.common.log_ids,
@@ -101,6 +102,7 @@ def main(
         need_test_partition=settings.common.perform_final_evaluation,
     )
     runtimes.stop(RuntimeMeter.PREPROCESSING)
+
 
     # Instantiate and run Simod
     simod = Simod(settings, event_log=event_log, output_dir=output)
