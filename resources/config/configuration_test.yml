@@ -39,7 +39,7 @@ control_flow:
   # Number of optimization iterations over the search space
   num_iterations: 5
   # Number of times to evaluate each iteration (using the mean of all of them)
-  num_evaluations_per_iteration: 3
+  num_evaluations_per_iteration: 2
   # Method for discovering gateway probabilities
   gateway_probabilities: discovery
   # Discover process model with SplitMiner v3
@@ -67,9 +67,9 @@ resource_model:
   # Metric to guide the optimization process (loss function to minimize)
   optimization_metric: circadian_emd
   # Number of optimization iterations over the search space
-  num_iterations: 5
+  num_iterations: 3
   # Number of times to evaluate each iteration (using the mean of all of them)
-  num_evaluations_per_iteration: 3
+  num_evaluations_per_iteration: 2
   # Whether to discover prioritization or batching behavior
   discover_prioritization_rules: false
   discover_batching_rules: false
@@ -96,4 +96,4 @@ extraneous_activity_delays:
   # Method to compute the extraneous delay
   discovery_method: eclipse-aware
   # Number of optimization iterations over the search space (1 = direct discovery, no optimization stage)
-  num_iterations: 0
+  num_iterations: 1
