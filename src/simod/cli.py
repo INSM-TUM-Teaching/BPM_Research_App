@@ -10,7 +10,6 @@ from simod.event_log.event_log import EventLog
 from simod.runtime_meter import RuntimeMeter
 from simod.settings.simod_settings import SimodSettings
 from simod.simod import Simod
-from simod.simod_control import SimodControl
 
 
 @click.command(
@@ -108,14 +107,6 @@ def main(
     # Instantiate and run Simod
     simod = Simod(settings, event_log=event_log, output_dir=output)
     simod.run(runtimes=runtimes)
-
-    # # Instantiate and run Simod Control
-    # control_stage = SimodControl(settings, event_log=event_log, output_dir=output)
-    # resume_dir = control_stage.run(runtimes=runtimes)
-    # # Print the final message with the correct path
-    # click.secho(f"\n✅ Control-flow stage complete.", fg='green')
-    # click.echo(f"   Intermediate results saved to: {resume_dir}")
-    # click.secho(f"   Run the next stage with: python cli1.py {resume_dir}", fg='yellow')
 
 
 if __name__ == "__main__":
