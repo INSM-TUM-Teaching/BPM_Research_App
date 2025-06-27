@@ -38,7 +38,7 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../')))
 
 # Import FastAPI app
-from server.server import app
+from ..server.server import app
 
 class ControlFlowOptimizer:
     """
