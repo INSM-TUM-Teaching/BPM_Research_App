@@ -13,7 +13,6 @@ import {
   Button,
   Box,
   Card,
-  CardContent,
   Chip,
   IconButton,
   Dialog,
@@ -21,7 +20,6 @@ import {
   DialogTitle,
   DialogActions,
   CircularProgress,
-  Divider,
   Alert,
   Tooltip,
 } from "@mui/material";
@@ -29,8 +27,8 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
 import StarIcon from '@mui/icons-material/Star';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
 import CloseIcon from '@mui/icons-material/Close';
+
 
 interface BpmnResult {
   loss: number;
@@ -56,17 +54,13 @@ const BpmnViewer: React.FC<{ filePath: string }> = ({ filePath }) => {
         setError(null);
         
         const viewer = new Viewer({ container: ref.current! });
-        
-        // Extract filename from path
-        //const filename = filePath.split('\\').pop();
-        const filename = filePath.replace(/\\/g, '/');  // 保证路径能传到后端
+
+        const filename = filePath.replace(/\\/g, '/');  
         console.log("Fetching BPMN:", filename);
 
         // Try to load from server - this assumes your server serves BPMN files
-        // const response = await fetch(`/api/bpmn/${filename}`);
         const response = await fetch(`http://localhost:8000/api/bpmn/${filename}`);
         if (!response.ok) {
-          const errorText = await response.text();  // 防止解析 HTML 报错
 
           throw new Error(`Failed to load BPMN file: ${response.status}`);
         }
@@ -142,12 +136,16 @@ const BestBpmns: React.FC = () => {
 
   const handlePreview = (path: string) => {
     const cleanPath = path
-      .replace(/^static[\\/]+best_bpmns[\\/]+/, "")  // 去掉前缀 static/best_bpmns/
-      .replace(/\\/g, "/");                          // 统一为正斜杠
+      .replace(/^static[\\/]+best_bpmns[\\/]+/, "")  // 
+      .replace(/\\/g, "/");                          // 
     setSelectedBpmn(cleanPath);
     setPreviewOpen(true);
   };
-
+  const handleDoubleClickBpmn = () => {
+    if (selectedBpmn) {
+      navigate(`/bpmn/${encodeURIComponent(selectedBpmn)}`);
+    }
+  };
   const handleClosePreview = () => {
     setPreviewOpen(false);
   };
@@ -257,7 +255,6 @@ const BestBpmns: React.FC = () => {
                         color="primary"
                         size="small"
                         startIcon={<VisibilityIcon />}
-                        // onClick={() => handlePreview(result.process_model_path)}
                         onClick={() => handlePreview(result.layout_bpmn_path)}
                       >
                         Preview
@@ -284,7 +281,11 @@ const BestBpmns: React.FC = () => {
             <CloseIcon />
           </IconButton>
         </DialogTitle>
-        <DialogContent dividers sx={{ p: 0 }}>
+        <DialogContent 
+          sx={{ p: 0 }} 
+          onDoubleClick={handleDoubleClickBpmn}
+          style={{ cursor: 'zoom-in' }}
+        >
           {selectedBpmn && <BpmnViewer filePath={selectedBpmn} />}
         </DialogContent>
         <DialogActions>

@@ -280,9 +280,9 @@ class ControlFlowOptimizer:
 
             transformed_bpmn_paths = []
             for bpmn_path in bpmn_paths:
-                relative_dir = bpmn_path.parent.name  # 假设是 "results/iteration_5" -> "iteration_5"
+                relative_dir = bpmn_path.parent.name  # assume that is "results/iteration_5" -> "iteration_5"
 
-                # 构建新的 layout 输出路径（结构清晰）
+                # build output subdirectory structure
                 output_subdir = Path("static/best_bpmns") / relative_dir
                 output_subdir.mkdir(parents=True, exist_ok=True)
 
@@ -297,7 +297,7 @@ class ControlFlowOptimizer:
                 row_dict["layout_bpmn_path"] = transformed_bpmn_paths[i].as_posix()
                 results_data.append(row_dict)
             
-            print("result_data1:", results_data)
+            # print("result_data1:", results_data)
             def convert_to_json_serializable(obj):
                 if isinstance(obj, Path):
                     return obj.as_posix()
@@ -308,10 +308,10 @@ class ControlFlowOptimizer:
                 else:
                     return obj
 
-            # 应用转换
+            # Convert all Path objects in results_data to JSON-serializable format
             results_data = convert_to_json_serializable(results_data)
 
-            print(json.dumps({"results": results_data}, indent=2))
+            # print(json.dumps({"results": results_data}, indent=2))
             response = requests.post(
                 "http://localhost:8000/top-3-results/",  # Change this to your actual endpoint
                 # json=results_data,  # Use the prepared data
@@ -323,31 +323,12 @@ class ControlFlowOptimizer:
 
             if response.ok:
                 # print("bpmn_paths:", bpmn_paths)
-                webbrowser.open("http://localhost:3000/top-3-results")  # Open the GUI in the default web browser
+                # Open the GUI in the default web browser
+                webbrowser.open("http://localhost:3000/top-3-results") 
+                print_message("-----------------------------------------------------------")    
+                print_message("✅ Top 3 results successfully sent to the GUI. Opening GUI...")
+                print_message("-----------------------------------------------------------")
 
-                # # when get the path, go through the BPMN files and generate layout for each of them
-                # transformed_bpmn_paths = []
-            
-                # for bpmn_path in bpmn_paths:
-                #     output_path = bpmn_path.parent / f"layout_{bpmn_path.name}"
-                #     print("output_path:", output_path)
-                #     generate_layout(str(bpmn_path), str(output_path))
-                #     transformed_bpmn_paths.append(output_path)
-                # print("transformed_bpmn_paths:", transformed_bpmn_paths)
-
-                #   
-                # for i, bpmn_path in enumerate(transformed_bpmn_paths):
-                #     with open(bpmn_path, "rb") as f:
-                #         upload_response = requests.post(
-                #             f"http://localhost:8000/top-3-results/upload/{i}",
-                #             files={"file": (bpmn_path.name, f, "application/xml")}
-                        # )
-                    # print("POST /top-3-results/ response.ok:", upload_response.ok, "status:", upload_response.status_code)
-                    # print("bpmn_paths:", bpmn_paths)
-                    # if upload_response.ok:
-                    #     print(f"Uploaded {bpmn_path.name} successfully.")
-                    # else:
-                        # print(f"Failed to upload {bpmn_path.name}: {upload_response.status_code} {upload_response.text}")
                         
                 print_message("-----------------------------------------------------------")
                 print_message(f"✅ Top 3 results successfully sent to the GUI! Status: {response.status_code}")
