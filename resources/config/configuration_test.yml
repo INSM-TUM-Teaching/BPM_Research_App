@@ -12,7 +12,7 @@ version: 5
 ##########
 common:
   # Path to the event log in CSV format
-  train_log_path: #/Users/anisha/Downloads/BPM_Research_App/resources/event_logs/event_log_with_common_activity.csv.gz
+  train_log_path: ../event_logs/LoanApp_simplified_train.csv.gz
   # Specify the name for each of the columns in the CSV file (XES standard by default)
   log_ids:
     case: "case_id"
@@ -21,6 +21,11 @@ common:
     enabled_time: "enabled_time" # If not present in the log, automatically computed
     start_time: "start_time"
     end_time: "end_time"
+  
+  #  # Use this process model and skip its discovery
+  # process_model_path: ../models/LoanApp_simplified.bpmn
+  # # Event log to evaluate the discovered BPS model with
+  # test_log_path: ../event_logs/LoanApp_simplified_test.csv.gz
   # Whether to discover case attributes or not
   discover_data_attributes: false
   clean_intermediate_files: false
