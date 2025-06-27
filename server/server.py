@@ -36,40 +36,6 @@ def get_top_3_results():
         return {"message": "No results have been received yet."}
     return JSONResponse(content={"results": top_3_results})
 
-# 添加到 server.py 顶部
-# top_3_models = []
-# top_3_files = []
-
-# from typing import List, Dict
-# UPLOAD_DIR1 = Path("uploaded_bpmn")
-# UPLOAD_DIR1.mkdir(exist_ok=True)
-# @app.post("/top-3-results/metadata")
-# def receive_top_3_metadata(data: List[Dict] = Body(...)):
-#     global top_3_results
-#     # 初始化，每个元素包含元数据和 layout_file
-#     top_3_results = [{"meta": item, "layout_file": None} for item in data]
-#     return {"message": "Top-3 metadata received", "count": len(data)}
-
-# @app.post("/top-3-results/upload/{index}")
-# async def upload_layout_file(index: int, file: UploadFile = File(...)):
-#     global top_3_results
-#     save_path = UPLOAD_DIR1 / file.filename
-#     with open(save_path, "wb") as f:
-#         shutil.copyfileobj(file.file, f)
-#     # 更新对应的 layout_file 字段
-#     if 0 <= index < len(top_3_results):
-#         top_3_results[index]["layout_file"] = file.filename
-#     else:
-#         raise HTTPException(status_code=400, detail="Invalid index")
-#     return {"message": "File uploaded", "filename": file.filename}
-
-# @app.get("/top-3-results/all")
-# def get_combined_top3_results():
-#     # 返回合并后的结构，前端可直接用
-#     return [
-#         {**item["meta"], "layout_file": item["layout_file"]}
-#         for item in top_3_results
-#     ]
 BASE_BPMN_DIR = "static/best_bpmns"
 
 @app.get("/api/bpmn/{full_path:path}")
