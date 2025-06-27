@@ -66,16 +66,19 @@ const EventLog: React.FC = () => {
     // First check if API (to get complete data) exists
     let completeEndpoint = false;
     try {
-      const testResponse = await fetch("http://localhost:8000/api/event-log/full", { method: 'HEAD' });
+      const testResponse = await fetch("http://localhost:8000/api/eventlog/full?check=1", {
+        method: "GET"
+      });
       completeEndpoint = testResponse.ok;
     } catch {
       completeEndpoint = false;
-    }
+      }
+
     
     // If full endpoint exists, we can use it directly (preferred)
     if (completeEndpoint) {
       console.log("Fetching all data at once...");
-      const response = await fetch("http://localhost:8000/api/event-log/full");
+      const response = await fetch("http://localhost:8000/api/eventlog/full");
       if (!response.ok) {
         throw new Error('Could not fetch event log data');
       }
@@ -101,7 +104,7 @@ const EventLog: React.FC = () => {
     else {
       console.log("Fetching all data page by page...");
       // Fetch first page and learn total row count
-      const firstPageResponse = await fetch("http://localhost:8000/api/event-log?limit=1000&offset=0");
+      const firstPageResponse = await fetch("http://localhost:8000/api/eventlog?limit=1000&offset=0");
       if (!firstPageResponse.ok) {
         throw new Error('Could not fetch event log data');
       }
@@ -131,7 +134,7 @@ const EventLog: React.FC = () => {
           console.log(`Fetching page ${i+1}/${batchCount} (${offset}-${offset+batchSize})...`);
           setError(`Loading page ${i+1} of ${batchCount}...`);
           
-          const pageResponse = await fetch(`http://localhost:8000/api/event-log?limit=${batchSize}&offset=${offset}`);
+          const pageResponse = await fetch(`http://localhost:8000/api/eventlog?limit=${batchSize}&offset=${offset}`);
           if (!pageResponse.ok) {
             throw new Error(`Could not fetch page ${i+1}`);
           }
@@ -355,7 +358,7 @@ const EventLog: React.FC = () => {
       console.log(`Sending ${filteredLogs.length} filtered records...`);
       
       // Send filtered data to API
-      const response = await fetch("http://localhost:8000/api/event-log/filtered", {
+      const response = await fetch("http://localhost:8000/api/eventlog/filtered", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -506,7 +509,7 @@ const EventLog: React.FC = () => {
   const fetchEventLog = async () => {
     try {
       // Fetch your data from the API
-      const response = await fetch('/api/eventLog');
+      const response = await fetch('/api/eventlog');
       const data = await response.json();
       
       // Update your state with the new data

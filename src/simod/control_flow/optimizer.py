@@ -2,6 +2,7 @@ import json
 import shutil
 from pathlib import Path
 from typing import List, Optional, Tuple
+import webbrowser
 
 import hyperopt
 import numpy as np
@@ -33,12 +34,20 @@ import uvicorn
 import requests
 import os
 import sys
+import importlib.util
+from simod.bpmn.auto_bpmn_layout import generate_layout  # Adjust import path as needed
 
 # Add the parent directory of `src` (i.e., BPM_Research_App) to the path so that we can import the FastAPI app from server.py
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../')))
+# sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../')))
 
 # Import FastAPI app
-from server.server import app
+server_file = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../server/server.py'))
+spec = importlib.util.spec_from_file_location("server", server_file)
+server = importlib.util.module_from_spec(spec)
+sys.modules["server"] = server
+spec.loader.exec_module(server)
+app = server.app
+
 
 class ControlFlowOptimizer:
     """
@@ -243,6 +252,7 @@ class ControlFlowOptimizer:
 
         # Filter top 3 successful results (status == STATUS_OK) for expert to select the best BPMN model 
         top_3_ok_results = results[results.status == STATUS_OK].head(3)
+        bpmn_paths = [Path(row["process_model_path"]) for _, row in top_3_ok_results.iterrows()]
 
         # Save DataFrame to output folder
         # Sorted values based on loss (two_gram_distance:SIMOD selection criteria for the best BPMN model) are saved in the output folder
@@ -268,17 +278,82 @@ class ControlFlowOptimizer:
                         row_dict[column_name] = value
                 results_data.append(row_dict)
 
+            transformed_bpmn_paths = []
+            for bpmn_path in bpmn_paths:
+                relative_dir = bpmn_path.parent.name  # 假设是 "results/iteration_5" -> "iteration_5"
+
+                # 构建新的 layout 输出路径（结构清晰）
+                output_subdir = Path("static/best_bpmns") / relative_dir
+                output_subdir.mkdir(parents=True, exist_ok=True)
+
+                output_path = output_subdir / f"layout_{bpmn_path.name}"
+                generate_layout(str(bpmn_path), str(output_path))
+                transformed_bpmn_paths.append(output_path)
+
+            results_data = []
+            for i, row in enumerate(top_3_ok_results.itertuples()):
+                row_dict = row._asdict() if hasattr(row, "_asdict") else dict(row._asdict())
+                # row_dict["layout_bpmn_path"] = transformed_bpmn_paths[i]  # 只存文件名
+                row_dict["layout_bpmn_path"] = transformed_bpmn_paths[i].as_posix()
+                results_data.append(row_dict)
+            
+            print("result_data1:", results_data)
+            def convert_to_json_serializable(obj):
+                if isinstance(obj, Path):
+                    return obj.as_posix()
+                elif isinstance(obj, dict):
+                    return {k: convert_to_json_serializable(v) for k, v in obj.items()}
+                elif isinstance(obj, list):
+                    return [convert_to_json_serializable(i) for i in obj]
+                else:
+                    return obj
+
+            # 应用转换
+            results_data = convert_to_json_serializable(results_data)
+
+            print(json.dumps({"results": results_data}, indent=2))
             response = requests.post(
                 "http://localhost:8000/top-3-results/",  # Change this to your actual endpoint
-                json=results_data,  # Use the prepared data
+                # json=results_data,  # Use the prepared data
+                json=results_data,
+                # print(results_data)
                 timeout=10
             )
+            print("result_data2:", results_data)
+
             if response.ok:
+                # print("bpmn_paths:", bpmn_paths)
+                webbrowser.open("http://localhost:3000/top-3-results")  # Open the GUI in the default web browser
+
+                # # when get the path, go through the BPMN files and generate layout for each of them
+                # transformed_bpmn_paths = []
+            
+                # for bpmn_path in bpmn_paths:
+                #     output_path = bpmn_path.parent / f"layout_{bpmn_path.name}"
+                #     print("output_path:", output_path)
+                #     generate_layout(str(bpmn_path), str(output_path))
+                #     transformed_bpmn_paths.append(output_path)
+                # print("transformed_bpmn_paths:", transformed_bpmn_paths)
+
+                #   
+                # for i, bpmn_path in enumerate(transformed_bpmn_paths):
+                #     with open(bpmn_path, "rb") as f:
+                #         upload_response = requests.post(
+                #             f"http://localhost:8000/top-3-results/upload/{i}",
+                #             files={"file": (bpmn_path.name, f, "application/xml")}
+                        # )
+                    # print("POST /top-3-results/ response.ok:", upload_response.ok, "status:", upload_response.status_code)
+                    # print("bpmn_paths:", bpmn_paths)
+                    # if upload_response.ok:
+                    #     print(f"Uploaded {bpmn_path.name} successfully.")
+                    # else:
+                        # print(f"Failed to upload {bpmn_path.name}: {upload_response.status_code} {upload_response.text}")
+                        
                 print_message("-----------------------------------------------------------")
                 print_message(f"✅ Top 3 results successfully sent to the GUI! Status: {response.status_code}")
                 print_message("-----------------------------------------------------------")
             else:
-                print_message("-------------------------------------------------------------------------------")
+                print_message("---------------------------------------------------------------------------")
                 print_message(f"⚠️ Warning: Failed to send results (status {response.status_code}). Response: {response.text}")
                 print_message("-------------------------------------------------------------------------------")
         except Exception as e:

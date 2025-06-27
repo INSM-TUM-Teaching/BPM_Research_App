@@ -37,6 +37,7 @@ interface BpmnResult {
   status: string;
   output_dir: string;
   process_model_path: string;
+  layout_bpmn_path: string;
 }
 
 const BpmnViewer: React.FC<{ filePath: string }> = ({ filePath }) => {
@@ -54,13 +55,19 @@ const BpmnViewer: React.FC<{ filePath: string }> = ({ filePath }) => {
         setLoading(true);
         setError(null);
         
+        const viewer = new Viewer({ container: ref.current! });
+        
         // Extract filename from path
-        const filename = filePath.split('\\').pop();
-        
+        //const filename = filePath.split('\\').pop();
+        const filename = filePath.replace(/\\/g, '/');  // 保证路径能传到后端
+        console.log("Fetching BPMN:", filename);
+
         // Try to load from server - this assumes your server serves BPMN files
-        const response = await fetch(`/api/bpmn/${filename}`);
-        
+        // const response = await fetch(`/api/bpmn/${filename}`);
+        const response = await fetch(`http://localhost:8000/api/bpmn/${filename}`);
         if (!response.ok) {
+          const errorText = await response.text();  // 防止解析 HTML 报错
+
           throw new Error(`Failed to load BPMN file: ${response.status}`);
         }
         
@@ -134,7 +141,10 @@ const BestBpmns: React.FC = () => {
   }, []);
 
   const handlePreview = (path: string) => {
-    setSelectedBpmn(path);
+    const cleanPath = path
+      .replace(/^static[\\/]+best_bpmns[\\/]+/, "")  // 去掉前缀 static/best_bpmns/
+      .replace(/\\/g, "/");                          // 统一为正斜杠
+    setSelectedBpmn(cleanPath);
     setPreviewOpen(true);
   };
 
@@ -247,7 +257,8 @@ const BestBpmns: React.FC = () => {
                         color="primary"
                         size="small"
                         startIcon={<VisibilityIcon />}
-                        onClick={() => handlePreview(result.process_model_path)}
+                        // onClick={() => handlePreview(result.process_model_path)}
+                        onClick={() => handlePreview(result.layout_bpmn_path)}
                       >
                         Preview
                       </Button>

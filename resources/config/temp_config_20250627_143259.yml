@@ -1,0 +1,51 @@
+common:
+  clean_intermediate_files: false
+  discover_data_attributes: false
+  log_ids:
+    activity: activity
+    case: case_id
+    enabled_time: enabled_time
+    end_time: end_time
+    resource: resource
+    start_time: start_time
+  train_log_path: C:\Users\huhan\Documents\Projects\BPM_Research_App\server\uploaded_logs\filtered_event_log_20250627_143244.csv
+control_flow:
+  epsilon:
+  - 0.05
+  - 0.4
+  eta:
+  - 0.2
+  - 0.7
+  gateway_probabilities: discovery
+  mining_algorithm: sm1
+  num_evaluations_per_iteration: 2
+  num_iterations: 5
+  optimization_metric: two_gram_distance
+  prioritize_parallelism:
+  - true
+  - false
+  replace_or_joins:
+  - true
+  - false
+extraneous_activity_delays:
+  discovery_method: eclipse-aware
+  num_iterations: 1
+preprocessing:
+  enable_time_concurrency_threshold: 0.75
+resource_model:
+  discover_batching_rules: false
+  discover_prioritization_rules: false
+  num_evaluations_per_iteration: 2
+  num_iterations: 3
+  optimization_metric: circadian_emd
+  resource_profiles:
+    confidence:
+    - 0.5
+    - 0.85
+    discovery_type: differentiated
+    granularity: 60
+    participation: 0.4
+    support:
+    - 0.05
+    - 0.5
+version: 5

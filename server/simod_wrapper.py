@@ -76,7 +76,7 @@ def main():
     # Clear previous event logs and filtering status
     print("Clearing previous event logs and filtering status...")
     try:
-        response = requests.post("http://localhost:8000/api/event-log/clear")
+        response = requests.post("http://localhost:8000/api/eventlog/clear")
     except Exception as e:
         print(f"API access error: {str(e)}")
     
@@ -201,7 +201,7 @@ def check_server_running():
 def start_server():
     """Starts the FastAPI server in the background"""
     server_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "server")
-    cmd = [sys.executable, "-m", "uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8000"]
+    cmd = [sys.executable, "-m", "uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
     
     # Start the server in the background
     subprocess.Popen(cmd, cwd=server_path, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -245,7 +245,7 @@ def send_event_log_to_api(log_path):
     try:
         with open(log_path, 'rb') as f:
             files = {'file': (os.path.basename(log_path), f)}
-            response = requests.post("http://localhost:8000/api/event-log/upload", files=files)
+            response = requests.post("http://localhost:8000/api/eventlog/upload", files=files)
         
         if response.status_code == 200:
             data = response.json()
@@ -282,7 +282,7 @@ def wait_for_filtering():
                     if status_data.get('status') == 'completed_filtering':
                         print("Received signal that filtering is completed.")
                         # Get filtered file path when filtering is completed
-                        path_response = requests.get("http://localhost:8000/api/event-log/filtered-path")
+                        path_response = requests.get("http://localhost:8000/api/eventlog/filtered-path")
                         if path_response.ok:
                             path_data = path_response.json()
                             path = path_data.get('path')
@@ -381,13 +381,13 @@ def run_simod_with_filtered_log(config_path, event_log_path, additional_args):
     # Try 3 different possible methods
     commands_to_try = [
         # Method 1: Run simod.cli module
-        [python_exe, "-m", "simod.cli", "--configuration", temp_config_path],
+        [python_exe, "-m", "simod.cli", "--configuration", config_path],
         
         # Method 2: Run simod.exe directly
-        [os.path.join(os.path.dirname(python_exe), "simod.exe"), "--configuration", temp_config_path],
+        [os.path.join(os.path.dirname(python_exe), "simod.exe"), "--configuration", config_path],
         
         # Method 3: Run simod with subprocess
-        ["simod", "--configuration", temp_config_path]
+        ["simod", "--configuration", config_path]
     ]
     
     # Add additional parameters (except --event-log)
