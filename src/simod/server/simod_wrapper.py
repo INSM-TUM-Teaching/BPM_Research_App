@@ -475,10 +475,10 @@ def run_simod_with_filtered_log(config_path, event_log_path, additional_args):
         if temp_config_path:
                 print("\nPerforming cleanup...")
                 cleanup_temp_config(temp_config_path)
-     
-    print("WARNING: All execution methods failed.")
-    return 1
-
+    
+    if final_exit_code != 0: 
+        print("WARNING: All execution methods failed.")
+    return final_exit_code
 
 def run_simod_with_original_config(config_path, event_log_path, additional_args):
     """Runs Simod with original configuration file"""
@@ -527,11 +527,12 @@ def run_simod_with_original_config(config_path, event_log_path, additional_args)
 
     finally:
         if temp_config_path:
-                print("\nPerforming cleanup...")
-                cleanup_temp_config(temp_config_path)
+            print("\nPerforming cleanup...")
+            cleanup_temp_config(temp_config_path)
         
+    if final_exit_code != 0:
         print("WARNING: All execution methods failed.")
-        return final_exit_code
+    return final_exit_code
            
 def create_temp_config(config_path, event_log_path):
     """
