@@ -33,6 +33,14 @@ def get_top_3_results():
         return {"message": "No results have been received yet."}
     return JSONResponse(content={"results": top_3_results})
 
+# API for resetting the top-3 results
+@app.delete("/top-3-results/")
+def reset_top_3_results():
+    """Reset the top-3 results to None."""
+    global top_3_results
+    top_3_results = None
+    return  {"message": "Top-3 results have been reset."}
+
 # Variables for best model selection
 selected_model_path: Optional[Path] = None
 
