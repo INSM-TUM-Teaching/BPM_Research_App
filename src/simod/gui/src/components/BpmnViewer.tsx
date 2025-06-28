@@ -14,24 +14,16 @@ const BpmnViewerPage: React.FC = () => {
 
     const load = async () => {
       const decodedFilename = decodeURIComponent(filename || "");
-      console.log("📂 Decoded filename:", decodedFilename);
-
       try {
         const response = await fetch(`http://localhost:8000/api/bpmn/${decodedFilename}`);
 
         // const response = await fetch(`/api/bpmn/${decodedFilename}`);
         const text = await response.clone().text();
-        console.log("📄 Raw response preview:", text.slice(0, 300));
-
         const json = await response.json();
         const { bpmn_xml } = json;
 
-        console.log("✅ Parsed BPMN XML snippet:", bpmn_xml.slice(0, 200));
-
         await viewer.importXML(bpmn_xml);
         // viewer.get("canvas").zoom("fit-viewport");
-
-        console.log("🎉 BPMN successfully rendered.");
       } catch (err) {
         console.error("❌ Failed to load or render BPMN:", err);
       }
