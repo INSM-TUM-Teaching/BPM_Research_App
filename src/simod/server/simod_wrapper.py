@@ -3,6 +3,7 @@ import sys
 import time
 import signal
 import argparse
+import random
 import subprocess
 from pathlib import Path
 import requests
@@ -417,28 +418,33 @@ def run_simod_with_filtered_log(config_path, event_log_path, additional_args):
     
     # Try 3 different possible methods
     commands_to_try = [
-        # Method 1: Run simod.cli module
-        [python_exe, "-m", "simod.cli", "--configuration", temp_config_path],
-        
-        # Method 2: Run simod.exe directly
-        [os.path.join(os.path.dirname(python_exe), "simod.exe"), "--configuration", temp_config_path],
-        
-        # Method 3: Run simod with subprocess
-        ["simod", "--configuration", temp_config_path]
+        (
+            "Method 1: Run simod.cli module",
+            [python_exe, "-m", "simod.cli", "--configuration", temp_config_path]
+        ),
+        (
+            "Method 2: Run simod.exe directly",
+            [os.path.join(os.path.dirname(python_exe), "simod"), "--configuration", temp_config_path],
+        ),
+        (
+            "Method 3: Run simod with subprocess",
+            ["simod", "--configuration", temp_config_path]
+        )
     ]
     
     # Add additional parameters (except --event-log)
     if additional_args:
-        
-        for cmd in commands_to_try:
+        for label, cmd in commands_to_try:
             # Filter out --event-log parameter
             filtered_args = [arg for arg in additional_args if "--event-log" not in arg]
             cmd.extend(filtered_args)
     
-    # Try all commands sequentially
-    for i, cmd in enumerate(commands_to_try):
+    # Shuffle the commands to try them in a random order each run
+    random.shuffle(commands_to_try)
+    for i, (label, cmd) in enumerate(commands_to_try):
         try:
-            print(f"Trying method {i+1}: {' '.join(cmd)}")
+            print(f"Attempt {i+1}: Trying {label}")
+            print(f"Executing: {' '.join(cmd)}")
             exit_code = subprocess.call(cmd)
             
             print("\n" + "="*50)
@@ -446,16 +452,16 @@ def run_simod_with_filtered_log(config_path, event_log_path, additional_args):
             print("="*50)
             
             if exit_code == 0:
-                print("Successfully completed!")
+                print("Successfully completed with: {label}")
                 # Clean up temporary configuration file
                 cleanup_temp_config(temp_config_path)
                 return exit_code
             else:
-                print(f"Method {i+1} failed, exit code: {exit_code}")
+                print(f"{label} failed with exit code: {exit_code}")
                 continue
                 
         except Exception as e:
-            print(f"Method {i+1} gave an error: {str(e)}")
+            print(f"{label} gave an error: {str(e)}")
             continue
     
     # Clean up temporary configuration file

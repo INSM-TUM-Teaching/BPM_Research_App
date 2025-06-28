@@ -1,7 +1,7 @@
 cd src/simod/gui
 npm run start &
 
-sleep 5
+sleep 2
 
 cd ../../..
 cd src/simod/server
