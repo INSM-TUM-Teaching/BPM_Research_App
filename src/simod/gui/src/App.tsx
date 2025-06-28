@@ -5,6 +5,7 @@ import HomePage from "./components/HomePage";
 import EventLog from "./components/EventLog";
 import BestBpmns from "./components/BestBpmns";
 import BpmnViewer from "./components/BpmnViewer";
+import LoadingScreen from "./components/LoadingScreen";
 
 
 function App() {
@@ -24,8 +25,15 @@ function App() {
             path="/eventlog"
             element={<EventLog />}
           />
-          <Route path="/top-3-results" element={<BestBpmns />} />
-          <Route path="/bpmn" element={<BpmnViewer/>} />
+          <Route
+           path="/top-3-results" element={<BestBpmns />} 
+           />
+          <Route
+           path="/bpmn" element={<BpmnViewer/>} 
+           />
+           <Route 
+           path="/loading" element={<LoadingScreen />} 
+           />
         </Routes>
       </div>
     </Router>
