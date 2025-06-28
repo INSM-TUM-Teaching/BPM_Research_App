@@ -404,20 +404,23 @@ def run_simod_with_filtered_log(config_path, event_log_path, additional_args):
     
     if not os.path.exists(event_log_path):
         print(f"ERROR: Event log file not found: {event_log_path}")
-        sys.exit(1)
+        return 1
     
-    # Temporarily modify the YAML configuration file
-    temp_config_path = create_temp_config(config_path, event_log_path)
-    if not temp_config_path or not os.path.exists(temp_config_path):
-        print("FATAL ERROR: Could not create a temporary configuration file. Aborting.")
-        sys.exit(1)
+    temp_config_path = None
+    final_exit_code = 1
+    try:
+        # Temporarily modify the YAML configuration file
+        temp_config_path = create_temp_config(config_path, event_log_path)
+        if not temp_config_path or not os.path.exists(temp_config_path):
+            print("FATAL ERROR: Could not create a temporary configuration file. Aborting.")
+            return 1
     
-    # CORRECTION: Run Simod's CLI module
-    # Find and use the correct command
-    python_exe = sys.executable
+        # CORRECTION: Run Simod's CLI module
+        # Find and use the correct command
+        python_exe = sys.executable
     
-    # Try 3 different possible methods
-    commands_to_try = [
+        # Try 3 different possible methods
+        commands_to_try = [
         (
             "Method 1: Run simod.cli module",
             [python_exe, "-m", "simod.cli", "--configuration", temp_config_path]
@@ -430,43 +433,49 @@ def run_simod_with_filtered_log(config_path, event_log_path, additional_args):
             "Method 3: Run simod with subprocess",
             ["simod", "--configuration", temp_config_path]
         )
-    ]
+        ]
     
-    # Add additional parameters (except --event-log)
-    if additional_args:
-        for label, cmd in commands_to_try:
-            # Filter out --event-log parameter
-            filtered_args = [arg for arg in additional_args if "--event-log" not in arg]
-            cmd.extend(filtered_args)
+        # Add additional parameters (except --event-log)
+        if additional_args:
+            for label, cmd in commands_to_try:
+                # Filter out --event-log parameter
+                filtered_args = [arg for arg in additional_args if "--event-log" not in arg]
+                cmd.extend(filtered_args)
     
-    # Shuffle the commands to try them in a random order each run
-    random.shuffle(commands_to_try)
-    for i, (label, cmd) in enumerate(commands_to_try):
-        try:
-            print(f"Attempt {i+1}: Trying {label}")
-            print(f"Executing: {' '.join(cmd)}")
-            exit_code = subprocess.call(cmd)
+        # Shuffle the commands to try them in a random order each run
+        random.shuffle(commands_to_try)
+        for i, (label, cmd) in enumerate(commands_to_try):
+            try:
+                print(f"Attempt {i+1}: Trying {label}")
+                print(f"Executing: {' '.join(cmd)}")
+                exit_code = subprocess.call(cmd)
             
-            print("\n" + "="*50)
-            print(f"Simod execution completed. Exit code: {exit_code}")
-            print("="*50)
+                print("\n" + "="*50)
+                print(f"Simod execution completed. Exit code: {exit_code}")
+                print("="*50)
             
-            if exit_code == 0:
-                print("Successfully completed with: {label}")
-                # Clean up temporary configuration file
-                cleanup_temp_config(temp_config_path)
-                return exit_code
-            else:
-                print(f"{label} failed with exit code: {exit_code}")
-                continue
+                if exit_code == 0:
+                    print("Successfully completed with: {label}")
+                    final_exit_code = 0
+                    break
+                else:
+                    print(f"{label} failed with exit code: {exit_code}")
+            
+            except FileNotFoundError:
+                print(f"{label} failed: The command '{cmd[0]}' was not found.")
                 
-        except Exception as e:
-            print(f"{label} gave an error: {str(e)}")
-            continue
-    
-    # Clean up temporary configuration file
-    cleanup_temp_config(temp_config_path)
-    
+    except Exception as e:
+        print(f"{label} gave an error: {str(e)}")
+        
+        if final_exit_code != 0:
+            print("\nWARNING: All execution methods for Simod failed.")
+            return final_exit_code
+
+    finally:
+        if temp_config_path:
+                print("\nPerforming cleanup...")
+                cleanup_temp_config(temp_config_path)
+     
     print("WARNING: All execution methods failed.")
     return 1
 
@@ -479,44 +488,51 @@ def run_simod_with_original_config(config_path, event_log_path, additional_args)
     print(f"Event Log for this run: {event_log_path}")
     print("="*50 + "\n")
     
-    temp_config_path = create_temp_config(config_path, event_log_path)
-    if not temp_config_path or not os.path.exists(temp_config_path):
-        print(f"FATAL ERROR: Could not create a temporary configuration file from template '{config_path}'. Aborting.")
-        sys.exit(1)
-
-    print(f"INFO: Generated temporary config for this run at: {temp_config_path}")
-    # We pass the 'temp_config_path' to simod, NOT the original 'config_path'.
-    cmd = ["simod", "--configuration", temp_config_path]
-    if additional_args:
-        cmd.extend(additional_args)
-
-    exit_code = 1 
+    temp_config_path = None
+    final_exit_code = 1
     try:
-        print(f"Executing command: {' '.join(cmd)}")
-        exit_code = subprocess.call(cmd)
+        temp_config_path = create_temp_config(config_path, event_log_path)
+        if not temp_config_path or not os.path.exists(temp_config_path):
+            print(f"FATAL ERROR: Could not create a temporary configuration file from template '{config_path}'. Aborting.")
+            return 1
 
-        print("\n" + "="*50)
-        print(f"Simod execution completed. Exit code: {exit_code}")
-        print("="*50)
-        if exit_code == 0:
-            print("Successfully completed!")
-        else:
-            print(f"Simod process failed with exit code: {exit_code}")
+        print(f"INFO: Generated temporary config for this run at: {temp_config_path}")
+        # We pass the 'temp_config_path' to simod, NOT the original 'config_path'.
+        cmd = ["simod", "--configuration", temp_config_path]
+        if additional_args:
+            cmd.extend(additional_args)
 
-    except FileNotFoundError:
-        print("\nFATAL ERROR: The command 'simod' was not found.")
-        print("Please ensure Simod is installed correctly and that its command-line tool is in your system's PATH.")
-        exit_code = 127
+        try:
+            print(f"Executing command: {' '.join(cmd)}")
+            exit_code = subprocess.call(cmd)
+
+            print("\n" + "="*50)
+            print(f"Simod execution completed. Exit code: {exit_code}")
+            print("="*50)
+            if exit_code == 0:
+                print("Successfully completed!")
+                final_exit_code = 0
+            else:
+                print(f"Simod process failed with exit code: {exit_code}")
+                final_exit_code = exit_code
+
+        except FileNotFoundError:
+            print("\nFATAL ERROR: The command 'simod' was not found.")
+            print("Please ensure Simod is installed correctly and that its command-line tool is in your system's PATH.")
+            final_exit_code = 127
+            
     except Exception as e:
         print(f"An unexpected error occurred while running Simod: {str(e)}")
-    
-    cleanup_temp_config(temp_config_path)
+        final_exit_code = 1
 
-    if exit_code != 0:
-        print("WARNING: Simod execution failed.")
+    finally:
+        if temp_config_path:
+                print("\nPerforming cleanup...")
+                cleanup_temp_config(temp_config_path)
         
-    return exit_code
-
+        print("WARNING: All execution methods failed.")
+        return final_exit_code
+           
 def create_temp_config(config_path, event_log_path):
     """
     Creates a copy of the given configuration file and
