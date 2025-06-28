@@ -12,7 +12,7 @@ version: 5
 ##########
 common:
   # Path to the event log in CSV format
-  train_log_path: ../event_logs/LoanApp_simplified_train.csv.gz
+  train_log_path: #../event_logs/LoanApp_simplified_train.csv.gz
   # Specify the name for each of the columns in the CSV file (XES standard by default)
   log_ids:
     case: "case_id"
@@ -21,6 +21,11 @@ common:
     enabled_time: "enabled_time" # If not present in the log, automatically computed
     start_time: "start_time"
     end_time: "end_time"
+  
+  #  # Use this process model and skip its discovery
+  # process_model_path: ../models/LoanApp_simplified.bpmn
+  # # Event log to evaluate the discovered BPS model with
+  # test_log_path: ../event_logs/LoanApp_simplified_test.csv.gz
   # Whether to discover case attributes or not
   discover_data_attributes: false
   clean_intermediate_files: false
@@ -39,7 +44,7 @@ control_flow:
   # Number of optimization iterations over the search space
   num_iterations: 5
   # Number of times to evaluate each iteration (using the mean of all of them)
-  num_evaluations_per_iteration: 3
+  num_evaluations_per_iteration: 2
   # Method for discovering gateway probabilities
   gateway_probabilities: discovery
   # Discover process model with SplitMiner v3
@@ -67,9 +72,9 @@ resource_model:
   # Metric to guide the optimization process (loss function to minimize)
   optimization_metric: circadian_emd
   # Number of optimization iterations over the search space
-  num_iterations: 5
+  num_iterations: 3
   # Number of times to evaluate each iteration (using the mean of all of them)
-  num_evaluations_per_iteration: 3
+  num_evaluations_per_iteration: 2
   # Whether to discover prioritization or batching behavior
   discover_prioritization_rules: false
   discover_batching_rules: false
@@ -96,4 +101,4 @@ extraneous_activity_delays:
   # Method to compute the extraneous delay
   discovery_method: eclipse-aware
   # Number of optimization iterations over the search space (1 = direct discovery, no optimization stage)
-  num_iterations: 0
+  num_iterations: 1

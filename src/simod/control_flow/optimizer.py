@@ -38,7 +38,7 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../')))
 
 # Import FastAPI app
-from server.server import app
+from ..server.server import app
 
 class ControlFlowOptimizer:
     """
@@ -295,9 +295,9 @@ class ControlFlowOptimizer:
         try:
             reset_response = requests.post("http://localhost:8000/reset-selected-model/")
             if reset_response.ok:
-                print_message("--------------------------------------")
-                print_message("✅ Selection state reset successfully.")
-                print_message("--------------------------------------")
+                print_message("------------------------------------")
+                print_message("✅ Selection state reset successful.")
+                print_message("------------------------------------")
             else:
                 print_message("-------------------------------------------------------------------------")
                 print_message(f"⚠️ Could not reset selection state. Status: {reset_response.status_code}")

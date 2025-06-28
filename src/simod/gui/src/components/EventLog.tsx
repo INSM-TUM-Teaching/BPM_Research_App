@@ -14,6 +14,7 @@ import FolderIcon from '@mui/icons-material/Folder';
 import CategoryIcon from '@mui/icons-material/Category';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import InfoIcon from '@mui/icons-material/Info';
+import { useNavigate } from "react-router-dom";
 //////##/////////////
 
 const EventLog: React.FC = () => {
@@ -408,23 +409,28 @@ const EventLog: React.FC = () => {
     setConfirmDialogOpen(true);
   };
   
+  const navigate = useNavigate();
+
   // After confirming Continue operation
   const handleConfirmContinue = async () => {
-    setConfirmDialogOpen(false);
-    setContinueLoading(true);
-    setContinueError(null);
-    
-    try {
-      // Save filtered data and send continue signal to Simod
-      await saveFilteredLogsAndContinue();
-      
-      // Show success message (no need to do anything here as the message is already set in saveFilteredLogsAndContinue)
-    } catch (err: any) {
-      setContinueError(err.message || "An error occurred during the process.");
-    } finally {
-      setContinueLoading(false);
-    }
-  };
+  setConfirmDialogOpen(false);
+  setContinueLoading(true);
+  setContinueError(null);
+
+  try {
+    // Save filtered logs and send continue signal to Simod
+    await saveFilteredLogsAndContinue();
+
+    // Delay 2 seconds before navigating to loading screen
+    setTimeout(() => {
+      navigate("/loading");
+    }, 2000);
+  } catch (err: any) {
+    setContinueError(err.message || "An error occurred during the process.");
+  } finally {
+    setContinueLoading(false);
+  }
+};
   
   // Close success message
   const handleSuccessClose = () => {
