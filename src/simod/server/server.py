@@ -41,6 +41,19 @@ def reset_top_3_results():
     top_3_results = None
     return  {"message": "Top-3 results have been reset."}
 
+# API for getting the best BPMN file
+# This endpoint serves BPMN files from a static directory
+BASE_BPMN_DIR = "static/best_bpmns"
+
+@app.get("/api/bpmn/{full_path:path}")
+def get_bpmn(full_path: str):
+    bpmn_path = os.path.join(BASE_BPMN_DIR, full_path)
+    if not os.path.isfile(bpmn_path):
+        raise HTTPException(status_code=404, detail="BPMN file not found")
+    with open(bpmn_path, "r", encoding="utf-8") as f:
+        xml = f.read()
+    return JSONResponse(content={"bpmn_xml": xml})
+
 # Variables for best model selection
 selected_model_path: Optional[Path] = None
 
