@@ -84,7 +84,7 @@ app.add_middleware(
 SIMOD_CONTINUE_EVENT = threading.Event()
 FILTERED_EVENT_LOG_PATH = None
 CURRENT_EVENT_LOG_PATH = None
-SIMOD_STATUS = "idle"  # idle, running, waiting_for_filter, completed, error
+SIMOD_STATUS = "idle"  # idle, running, waiting_for_filter, completed_filtering, completed, error
 
 # Yükleme dizinini tanımla
 UPLOAD_DIR = Path("uploaded_logs")
@@ -115,9 +115,11 @@ async def upload_event_log(file: UploadFile = File(...)):
             content = await file.read()
             f.write(content)
         
-        CURRENT_EVENT_LOG_PATH = str(file_path)
+        # Store and return the ABSOLUTE path for robustness
+        CURRENT_EVENT_LOG_PATH = str(file_path.resolve())
         
         print(f"Event log dosyası başarıyla yüklendi: {file.filename} ({os.path.getsize(file_path)} bytes)")
+        print(f"Absolute path set to: {CURRENT_EVENT_LOG_PATH}")
         
         # İlk birkaç satırı okuyarak içeriği kontrol et
         try:
@@ -138,6 +140,19 @@ async def upload_event_log(file: UploadFile = File(...)):
         print(error_details)
         raise HTTPException(status_code=500, detail=f"Event log yüklenirken hata oluştu: {str(e)}")
 
+# Add the missing endpoint for the wrapper to poll for UI uploads
+@app.get("/api/event-log/uploaded-path")
+async def get_uploaded_log_path():
+    """
+    Returns the path of the originally uploaded event log.
+    """
+    global CURRENT_EVENT_LOG_PATH
+    print(f"[SERVER-POLL] Checking for uploaded path. Current value: '{CURRENT_EVENT_LOG_PATH}'")
+    if CURRENT_EVENT_LOG_PATH and os.path.exists(CURRENT_EVENT_LOG_PATH):
+        return {"path": CURRENT_EVENT_LOG_PATH}
+    else:
+        return {"path": None}
+
 # Event log endpoint'i - sayfalama ile
 @app.get("/api/event-log")
 async def get_event_log(limit: int = 100, offset: int = 0):
@@ -151,7 +166,7 @@ async def get_event_log(limit: int = 100, offset: int = 0):
             if UPLOAD_DIR.exists():
                 log_files = list(UPLOAD_DIR.glob("*.csv"))
                 if log_files:
-                    CURRENT_EVENT_LOG_PATH = str(max(log_files, key=os.path.getmtime))
+                    CURRENT_EVENT_LOG_PATH = str(max(log_files, key=os.path.getmtime).resolve())
                 else:
                     raise HTTPException(status_code=404, detail="Event log dosyası bulunamadı")
             else:
@@ -205,7 +220,7 @@ async def get_full_event_log():
             if UPLOAD_DIR.exists():
                 log_files = list(UPLOAD_DIR.glob("*.csv"))
                 if log_files:
-                    CURRENT_EVENT_LOG_PATH = str(max(log_files, key=os.path.getmtime))
+                    CURRENT_EVENT_LOG_PATH = str(max(log_files, key=os.path.getmtime).resolve())
                 else:
                     raise HTTPException(status_code=404, detail="Event log dosyası bulunamadı")
             else:
@@ -244,9 +259,9 @@ async def get_full_event_log():
 @app.post("/api/event-log/filtered")
 async def save_filtered_event_log(data: dict):
     """
-    Filtrelenmiş event log verilerini CSV olarak kaydeder
+    Filtrelenmiş event log verilerini CSV olarak kaydeder ve Simod durumunu günceller
     """
-    global FILTERED_EVENT_LOG_PATH, SIMOD_CONTINUE_EVENT
+    global FILTERED_EVENT_LOG_PATH, SIMOD_CONTINUE_EVENT, SIMOD_STATUS
     
     try:
         # Gelen verileri kontrol et
@@ -277,11 +292,13 @@ async def save_filtered_event_log(data: dict):
         if not os.path.exists(file_path):
             raise HTTPException(status_code=500, detail="Dosya kaydedildi ancak kontrol edilemedi")
             
-        # Global değişkene ata
-        FILTERED_EVENT_LOG_PATH = str(file_path)
-        SIMOD_CONTINUE_EVENT.set()  # Devam sinyalini ayarla
+        # Store absolute path and update Simod status
+        FILTERED_EVENT_LOG_PATH = str(file_path.resolve())
+        SIMOD_STATUS = "completed_filtering"
+        SIMOD_CONTINUE_EVENT.set()
         
-        print(f"Filtrelenmiş event log dosyası kaydedildi: {file_path} ({len(df)} kayıt)")
+        print(f"Filtrelenmiş event log dosyası kaydedildi: {FILTERED_EVENT_LOG_PATH} ({len(df)} kayıt)")
+        print(f"Simod durumu güncellendi: {SIMOD_STATUS}")
         
         return {
             "status": "success", 
@@ -391,15 +408,16 @@ async def set_simod_status(data: dict):
 @app.post("/api/event-log/clear")
 async def clear_event_logs():
     """Yüklü event log'ları ve filtreleme durumunu temizler"""
-    global CURRENT_EVENT_LOG_PATH, FILTERED_EVENT_LOG_PATH, SIMOD_CONTINUE_EVENT
-    
+    global CURRENT_EVENT_LOG_PATH, FILTERED_EVENT_LOG_PATH, SIMOD_CONTINUE_EVENT, SIMOD_STATUS
+    print("[SERVER-CLEAR] Received request to clear state.")
     try:
         # Global değişkenleri sıfırla
         old_path = CURRENT_EVENT_LOG_PATH
         CURRENT_EVENT_LOG_PATH = None
         FILTERED_EVENT_LOG_PATH = None
+        SIMOD_STATUS = "idle"
         SIMOD_CONTINUE_EVENT.clear()
-        
+        print(f"[SERVER-CLEAR] Globals reset. CURRENT_EVENT_LOG_PATH is now: '{CURRENT_EVENT_LOG_PATH}'")
         # Klasördeki dosyaları temizle
         if UPLOAD_DIR.exists():
             import shutil
@@ -408,9 +426,11 @@ async def clear_event_logs():
                 for file_path in UPLOAD_DIR.glob("*"):
                     if file_path.is_file():
                         file_path.unlink()  # Dosyayı sil
-                print(f"Klasördeki tüm dosyalar temizlendi: {UPLOAD_DIR}")
+                        deleted_files += 1
+                print(f"[SERVER-CLEAR] {deleted_files} file(s) deleted from: {UPLOAD_DIR}")
+               
             except Exception as e:
-                print(f"Dosyalar silinirken hata: {str(e)}")
+                print(f"[SERVER-CLEAR] Error while deleting files: {str(e)}")
             
         return {
             "status": "success",
