@@ -5,7 +5,6 @@ import BpmnViewer from "bpmn-js/lib/NavigatedViewer";
 
 const BpmnViewerPage: React.FC = () => {
   const { filename } = useParams();
-  // const decodedFilename = decodeURIComponent(filename || "");
   const containerRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
@@ -14,18 +13,16 @@ const BpmnViewerPage: React.FC = () => {
 
     const load = async () => {
       const decodedFilename = decodeURIComponent(filename || "");
+      
       try {
         const response = await fetch(`http://localhost:8000/api/bpmn/${decodedFilename}`);
-
-        // const response = await fetch(`/api/bpmn/${decodedFilename}`);
-        const text = await response.clone().text();
         const json = await response.json();
         const { bpmn_xml } = json;
-
+        
         await viewer.importXML(bpmn_xml);
-        // viewer.get("canvas").zoom("fit-viewport");
+        (viewer.get("canvas") as any).zoom("fit-viewport");
       } catch (err) {
-        console.error("❌ Failed to load or render BPMN:", err);
+        console.error("Failed to load BPMN:", err);
       }
     };
 
@@ -38,18 +35,18 @@ const BpmnViewerPage: React.FC = () => {
     if (!filename) return;
 
     try {
-      const decodedPath = decodeURIComponent(filename); // 得到完整的 layout 路径
+      const decodedPath = decodeURIComponent(filename);
 
       const res = await fetch("http://localhost:8000/select-model/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          layout_bpmn_path: decodedPath,  // ✅ 使用 layout_bpmn_path 作为字段名
+          model_path: decodedPath,
         }),
       });
 
       const result = await res.json();
-      alert(`✅ Model selected: ${result.layout_bpmn_path}`);
+      alert(`✅ Model selected: ${result.model_path}`);
       navigate("/");
     } catch (err) {
       console.error("Failed to send selection", err);
