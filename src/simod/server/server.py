@@ -287,7 +287,7 @@ app.add_middleware(
 SIMOD_CONTINUE_EVENT = threading.Event()
 FILTERED_EVENT_LOG_PATH = None
 CURRENT_EVENT_LOG_PATH = None
-SIMOD_STATUS = "idle"  # idle, running, waiting_for_filter, completed, error
+SIMOD_STATUS = "idle"  # idle, running, waiting_for_filter, completed_filtering, completed, error
 
 # Define upload directory
 UPLOAD_DIR = Path("uploaded_logs")
@@ -318,9 +318,11 @@ async def upload_event_log(file: UploadFile = File(...)):
             content = await file.read()
             f.write(content)
         
-        CURRENT_EVENT_LOG_PATH = str(file_path)
+        # Store and return the ABSOLUTE path for robustness
+        CURRENT_EVENT_LOG_PATH = str(file_path.resolve())
         
-        print(f"Event log file successfully uploaded: {file.filename} ({os.path.getsize(file_path)} bytes)")
+        print(f"Event log dosyası başarıyla yüklendi: {file.filename} ({os.path.getsize(file_path)} bytes)")
+        print(f"Absolute path set to: {CURRENT_EVENT_LOG_PATH}")
         
         # Read first few rows to check content
         try:
@@ -341,7 +343,20 @@ async def upload_event_log(file: UploadFile = File(...)):
         print(error_details)
         raise HTTPException(status_code=500, detail=f"Error uploading event log: {str(e)}")
 
-# Event log endpoint - with pagination
+# Add the missing endpoint for the wrapper to poll for UI uploads
+@app.get("/api/event-log/uploaded-path")
+async def get_uploaded_log_path():
+    """
+    Returns the path of the originally uploaded event log.
+    """
+    global CURRENT_EVENT_LOG_PATH
+    print(f"[SERVER-POLL] Checking for uploaded path. Current value: '{CURRENT_EVENT_LOG_PATH}'")
+    if CURRENT_EVENT_LOG_PATH and os.path.exists(CURRENT_EVENT_LOG_PATH):
+        return {"path": CURRENT_EVENT_LOG_PATH}
+    else:
+        return {"path": None}
+
+# Event log endpoint'i - sayfalama ile
 @app.get("/api/event-log")
 async def get_event_log(limit: int = 100, offset: int = 0):
     """Return event log data with pagination"""
@@ -354,7 +369,7 @@ async def get_event_log(limit: int = 100, offset: int = 0):
             if UPLOAD_DIR.exists():
                 log_files = list(UPLOAD_DIR.glob("*.csv"))
                 if log_files:
-                    CURRENT_EVENT_LOG_PATH = str(max(log_files, key=os.path.getmtime))
+                    CURRENT_EVENT_LOG_PATH = str(max(log_files, key=os.path.getmtime).resolve())
                 else:
                     raise HTTPException(status_code=404, detail="Event log file not found")
             else:
@@ -408,7 +423,7 @@ async def get_full_event_log():
             if UPLOAD_DIR.exists():
                 log_files = list(UPLOAD_DIR.glob("*.csv"))
                 if log_files:
-                    CURRENT_EVENT_LOG_PATH = str(max(log_files, key=os.path.getmtime))
+                    CURRENT_EVENT_LOG_PATH = str(max(log_files, key=os.path.getmtime).resolve())
                 else:
                     raise HTTPException(status_code=404, detail="Event log file not found")
             else:
@@ -447,9 +462,9 @@ async def get_full_event_log():
 @app.post("/api/event-log/filtered")
 async def save_filtered_event_log(data: dict):
     """
-    Save filtered event log data as CSV
+    Filtrelenmiş event log verilerini CSV olarak kaydeder ve Simod durumunu günceller
     """
-    global FILTERED_EVENT_LOG_PATH, SIMOD_CONTINUE_EVENT
+    global FILTERED_EVENT_LOG_PATH, SIMOD_CONTINUE_EVENT, SIMOD_STATUS
     
     try:
         # Check incoming data
@@ -480,11 +495,13 @@ async def save_filtered_event_log(data: dict):
         if not os.path.exists(file_path):
             raise HTTPException(status_code=500, detail="File saved but could not be verified")
             
-        # Assign to global variable
-        FILTERED_EVENT_LOG_PATH = str(file_path)
-        SIMOD_CONTINUE_EVENT.set()  # Set continue signal
+        # Store absolute path and update Simod status
+        FILTERED_EVENT_LOG_PATH = str(file_path.resolve())
+        SIMOD_STATUS = "completed_filtering"
+        SIMOD_CONTINUE_EVENT.set()
         
-        print(f"Filtered event log file saved: {file_path} ({len(df)} records)")
+        print(f"Filtrelenmiş event log dosyası kaydedildi: {FILTERED_EVENT_LOG_PATH} ({len(df)} kayıt)")
+        print(f"Simod durumu güncellendi: {SIMOD_STATUS}")
         
         return {
             "status": "success", 
@@ -593,27 +610,30 @@ async def set_simod_status(data: dict):
 # Cleanup endpoint
 @app.post("/api/event-log/clear")
 async def clear_event_logs():
-    """Clear uploaded event logs and filtering state"""
-    global CURRENT_EVENT_LOG_PATH, FILTERED_EVENT_LOG_PATH, SIMOD_CONTINUE_EVENT
-    
+    """Yüklü event log'ları ve filtreleme durumunu temizler"""
+    global CURRENT_EVENT_LOG_PATH, FILTERED_EVENT_LOG_PATH, SIMOD_CONTINUE_EVENT, SIMOD_STATUS
+    print("[SERVER-CLEAR] Received request to clear state.")
     try:
         # Reset global variables
         old_path = CURRENT_EVENT_LOG_PATH
         CURRENT_EVENT_LOG_PATH = None
         FILTERED_EVENT_LOG_PATH = None
+        SIMOD_STATUS = "idle"
         SIMOD_CONTINUE_EVENT.clear()
-        
-        # Clean files in the folder
+        print(f"[SERVER-CLEAR] Globals reset. CURRENT_EVENT_LOG_PATH is now: '{CURRENT_EVENT_LOG_PATH}'")
+        # Klasördeki dosyaları temizle
         if UPLOAD_DIR.exists():
             import shutil
             try:
                 # Clean files in the folder but don't delete the folder
                 for file_path in UPLOAD_DIR.glob("*"):
                     if file_path.is_file():
-                        file_path.unlink()  # Delete file
-                print(f"All files in folder cleaned: {UPLOAD_DIR}")
+                        file_path.unlink()  # Dosyayı sil
+                        deleted_files += 1
+                print(f"[SERVER-CLEAR] {deleted_files} file(s) deleted from: {UPLOAD_DIR}")
+               
             except Exception as e:
-                print(f"Error deleting files: {str(e)}")
+                print(f"[SERVER-CLEAR] Error while deleting files: {str(e)}")
             
         return {
             "status": "success",

@@ -416,21 +416,50 @@ const EventLog: React.FC = () => {
   setConfirmDialogOpen(false);
   setContinueLoading(true);
   setContinueError(null);
+  setContinueSuccess(null);
+
+   const payload = {
+        data: filteredLogs
+    };
 
   try {
-    // Save filtered logs and send continue signal to Simod
-    await saveFilteredLogsAndContinue();
 
-    // Delay 2 seconds before navigating to loading screen
-    setTimeout(() => {
-      navigate("/loading");
-    }, 2000);
-  } catch (err: any) {
-    setContinueError(err.message || "An error occurred during the process.");
-  } finally {
-    setContinueLoading(false);
-  }
+    const response = await fetch("http://localhost:8000/api/event-log/filtered", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            // If the server returns an error (like 4xx or 5xx), throw an error.
+            throw new Error(result.detail || `Server returned status ${response.status}`);
+        }
+
+        // --- STEP 2: Handle Success ---
+        // The wrapper script will now see the 'completed_filtering' status and proceed.
+        const successMsg = `Success! Simod will now continue with the filtered log (${result.row_count} records).`;
+        setContinueSuccess(successMsg);
+        console.log("Filtering successful:", result);
+
+        // Optional: Navigate the user to a loading/waiting page after a short delay.
+        setTimeout(() => {
+            navigate("/loading"); // Or any other appropriate page
+        }, 2000); // 2-second delay to let the user read the success message.
+
+    } catch (err: any) {
+        // --- STEP 3: Handle Errors ---
+        console.error("Failed to save filtered log and continue:", err);
+        setContinueError(err.message || "An unknown error occurred.");
+    } finally {
+        // --- STEP 4: Reset Loading State ---
+        setContinueLoading(false);
+    }
 };
+
   
   // Close success message
   const handleSuccessClose = () => {
