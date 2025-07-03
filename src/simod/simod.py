@@ -311,7 +311,7 @@ class Simod:
         self.final_bps_model.replace_activity_names_with_ids()
         runtimes.stop(RuntimeMeter.FINAL_MODEL)
         runtimes.stop(RuntimeMeter.TOTAL)
-
+        
         # Write JSON parameters to file
         json_parameters_path = get_simulation_parameters_path(self._best_result_dir, self._event_log.process_name)
         with json_parameters_path.open("w") as f:
@@ -338,6 +338,43 @@ class Simod:
 
         # --- Add BPMN diagram to the model --- #
         add_bpmn_diagram_to_model(self.final_bps_model.process_model)
+        
+        # --- Running Prosimos --- #
+        print_section("Running best results with Prosimos")
+        import os
+        import subprocess
+        bpmn_path = str(self.final_bps_model.process_model)
+        json_path = str(json_parameters_path)
+        log_out_path = str(self._best_result_dir / "prosimos_log.csv")
+        stat_out_path = str(self._best_result_dir / "prosimos_stats.csv")
+        try:
+            result = subprocess.run(
+            [
+                'poetry', 'run', 'prosimos', 'start-simulation',
+                '--bpmn_path', bpmn_path,
+                '--json_path', json_path,
+                '--total_cases', '5',
+                '--log_out_path', log_out_path,
+                '--stat_out_path', stat_out_path
+            ],
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True
+        )
+            print("Prosimos simulation finished successfully.")
+            print(f"  - Simulated event log saved to: {log_out_path}")
+            print(f"  - Simulation statistics saved to: {stat_out_path}")
+            if result.stdout:
+                print("Prosimos output:\n", result.stdout)
+        except FileNotFoundError:
+            print("ERROR: Could not run Prosimos. 'poetry' command not found.")
+            print("Please ensure you are running this within the correct poetry environment.")
+        except subprocess.CalledProcessError as e:
+            print("ERROR: Prosimos simulation failed.")
+            print("Prosimos output (stdout):\n", e.stdout)
+            print("Prosimos error (stderr):\n", e.stderr)
+            print("Prosimos failed\n", e.stderr)
 
     def _optimize_control_flow(self) -> ControlFlowHyperoptIterationParams:
         """

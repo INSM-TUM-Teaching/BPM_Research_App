@@ -462,7 +462,7 @@ async def get_full_event_log():
 @app.post("/api/event-log/filtered")
 async def save_filtered_event_log(data: dict):
     """
-    Filtrelenmiş event log verilerini CSV olarak kaydeder ve Simod durumunu günceller
+    Filtrelenmiş event log verilerini CSV olarak kaydeder
     """
     global FILTERED_EVENT_LOG_PATH, SIMOD_CONTINUE_EVENT, SIMOD_STATUS
     
@@ -629,9 +629,7 @@ async def clear_event_logs():
                 for file_path in UPLOAD_DIR.glob("*"):
                     if file_path.is_file():
                         file_path.unlink()  # Dosyayı sil
-                        deleted_files += 1
-                print(f"[SERVER-CLEAR] {deleted_files} file(s) deleted from: {UPLOAD_DIR}")
-               
+                print(f"Klasördeki tüm dosyalar temizlendi: {UPLOAD_DIR}")
             except Exception as e:
                 print(f"[SERVER-CLEAR] Error while deleting files: {str(e)}")
             
