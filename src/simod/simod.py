@@ -345,8 +345,8 @@ class Simod:
         import subprocess
         bpmn_path = str(self.final_bps_model.process_model)
         json_path = str(json_parameters_path)
-        log_out_path = str(self._best_result_dir / "simulated_log.csv")
-        stat_out_path = str(self._best_result_dir / "simulation_stats.csv")
+        log_out_path = str(self._best_result_dir / "prosimos_log.csv")
+        stat_out_path = str(self._best_result_dir / "prosimos_stats.csv")
         try:
             result = subprocess.run(
             [
