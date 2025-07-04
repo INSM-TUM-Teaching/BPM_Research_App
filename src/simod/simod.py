@@ -35,7 +35,7 @@ from simod.settings.simod_settings import SimodSettings
 from simod.simulation.parameters.BPS_model import BPSModel
 from simod.simulation.prosimos import simulate_and_evaluate
 from simod.utilities import get_process_model_path, get_simulation_parameters_path
-
+import requests
 
 class Simod:
     """
@@ -363,10 +363,10 @@ class Simod:
             text=True
         )
             print("Prosimos simulation finished successfully.")
-            print(f"  - Simulated event log saved to: {log_out_path}")
-            print(f"  - Simulation statistics saved to: {stat_out_path}")
-            if result.stdout:
-                print("Prosimos output:\n", result.stdout)
+            print(f"Simulated event log saved to: {log_out_path}")
+            print(f"Simulation statistics saved to: {stat_out_path}")
+            print("Prosimos output:\n", result.stdout)
+            self._send_final_prosimos_stats_to_server(stat_out_path, log_out_path)
         except FileNotFoundError:
             print("ERROR: Could not run Prosimos. 'poetry' command not found.")
             print("Please ensure you are running this within the correct poetry environment.")
@@ -376,6 +376,40 @@ class Simod:
             print("Prosimos error (stderr):\n", e.stderr)
             print("Prosimos failed\n", e.stderr)
 
+    
+    def _send_final_prosimos_stats_to_server(self, stat_path: str, log_path: str):
+        """
+        Reads the final Prosimos statistics and sends them to the FastAPI server.
+        """
+        print_subsection("Sending final Prosimos results to the server")
+        print(f"Attempting to send stats from: {stat_path}")
+        if not Path(stat_path).exists():
+            print(f"WARNING: Prosimos stats file not found at {stat_path}. Cannot send results.")
+            return
+        
+        try:
+            print("Reading stats file as plain text...")
+            with open(stat_path, 'r', encoding='utf-8') as f:
+                stats_content_string = f.read()
+            
+            payload = {
+                "stats_path": str(stat_path),
+                "log_path": str(log_path),
+                "stats_content": stats_content_string 
+            }
+            
+            server_url = "http://127.0.0.1:8000/final-prosimos-stats/"
+            print(f"Preparing to send POST request to {server_url}...")
+            response = requests.post(server_url, json=payload, timeout=15)
+            response.raise_for_status()
+            print(f"Successfully sent final Prosimos stats to the server. Response: {response.json()}")
+
+        except requests.exceptions.RequestException as e:
+            print(f"ERROR: Could not connect to the API server at {server_url}. "
+                  f"Please ensure the server is running. Details: {e}")
+        except Exception as e:
+            print(f"An unexpected error occurred while sending final Prosimos stats to the server: {e}")
+    
     def _optimize_control_flow(self) -> ControlFlowHyperoptIterationParams:
         """
         Control-flow and Gateway Probabilities discovery.

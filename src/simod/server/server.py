@@ -10,7 +10,75 @@ from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+import csv
+from io import StringIO
+from typing import List, Dict, Any
 
+# Prosimos CSV hjas multiple sections so parsing to structured JSON object
+def parse_prosimos_stats(csv_content: str) -> Dict[str, Any]:
+    """
+    Parses the multi-section prosimos_stats.csv content into a structured dictionary.
+    """
+    if not csv_content:
+        return {}
+    sections = {
+        "Resource Utilization": [],
+        "Individual Task Statistics": [],
+        "Overall Scenario Statistics": []
+    }
+    metadata = {}
+    current_section_name = None
+    f = StringIO(csv_content)
+    lines = f.readlines()
+
+    for line in lines:
+        line = line.strip()
+        if not line or line == '""':  # Skip blank lines just ""
+            continue
+        if line in sections:
+            current_section_name = line
+            continue
+
+        # Handle the initial metadata lines (e.g., started_at)
+        if "," in line and ":" in line and current_section_name is None:
+             try:
+                key, value = line.split(',', 1)
+                metadata[key.strip()] = value.strip()
+                continue
+             except ValueError:
+                pass
+
+        # If we are inside a known section, parse it as a table
+        if current_section_name:
+            reader = csv.reader([line])
+            row = next(reader)
+            
+            # If the section is empty, this line is the header
+            if not sections[current_section_name]:
+                 sections[current_section_name].append(row) # Add header
+            else:
+                header = sections[current_section_name][0]
+                row_dict = {header[i]: (row[i] if i < len(row) else None) for i in range(len(header))}
+                sections[current_section_name].append(row_dict)
+
+    # Clean up the output: remove the header from the data list and store it separately
+    parsed_output = {"metadata": metadata}
+    for section_name, content in sections.items():
+        if len(content) > 1:
+            header = content[0]
+            data_rows = content[1:]
+            parsed_output[section_name] = {
+                "headers": header,
+                "rows": data_rows
+            }
+        else:
+            # Section was found but had no data rows
+             parsed_output[section_name] = {
+                "headers": [],
+                "rows": []
+            }
+
+    return parsed_output
 # Import auto_bpmn_layout only when needed
 def import_auto_bpmn_layout():
     """Import auto_bpmn_layout module dynamically"""
@@ -644,6 +712,47 @@ async def clear_event_logs():
         print(error_details)
         raise HTTPException(status_code=500, detail=f"Error clearing event log: {str(e)}")    
 
+
+class ProsimosStats(BaseModel):
+    stats_path: str
+    log_path: str
+    stats_content: str
+# Global variable to store the final stats
+final_prosimos_stats: Optional[Dict] = None
+@app.post("/final-prosimos-stats/")
+def receive_final_stats(data: ProsimosStats):
+    """Accept and store the final Prosimos simulation statistics."""
+    print("\nINCOMING PROSIMOS STATS")
+    print(f"Received stats file path: {data.stats_path}")
+    print(f"First 25 chars of content: {data.stats_content[:25]}...")
+    print("---------------------------------\n")
+    global final_prosimos_stats
+    # Parse the raw CSV content into a structured dictionary
+    parsed_stats = parse_prosimos_stats(data.stats_content)
+    # Store the complete, clean object
+    final_prosimos_stats = {
+        "stats_path": data.stats_path,
+        "log_path": data.log_path,
+        "parsed_stats": parsed_stats # Store the newly parsed object
+    }
+    return {"message": "Final Prosimos stats received successfully", "log_file": data.log_path}
+  
+ # API for retrieving the final stats
+@app.get("/final-prosimos-stats/")
+def get_final_stats():
+    """Return the final Prosimos simulation statistics if available."""
+    if final_prosimos_stats is None:
+        raise HTTPException(status_code=404, detail="Final Prosimos stats not available yet.")
+    return JSONResponse(content=final_prosimos_stats)
+
+ # API for resetting the final stats
+@app.delete("/final-prosimos-stats/")
+def reset_final_stats():
+    """Reset the final Prosimos stats to None."""
+    global final_prosimos_stats
+    final_prosimos_stats = None
+    return {"message": "Final Prosimos stats have been reset."}
+  
 if __name__ == "__main__":
     import uvicorn
     
