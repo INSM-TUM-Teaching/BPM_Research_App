@@ -738,6 +738,7 @@ def receive_final_stats(data: ProsimosStats):
     return {"message": "Final Prosimos stats received successfully", "log_file": data.log_path}
   
  # API for retrieving the final stats
+
 @app.get("/final-prosimos-stats/")
 def get_final_stats():
     """Return the final Prosimos simulation statistics if available."""
@@ -746,6 +747,7 @@ def get_final_stats():
     return JSONResponse(content=final_prosimos_stats)
 
  # API for resetting the final stats
+
 @app.delete("/final-prosimos-stats/")
 def reset_final_stats():
     """Reset the final Prosimos stats to None."""
@@ -753,6 +755,31 @@ def reset_final_stats():
     final_prosimos_stats = None
     return {"message": "Final Prosimos stats have been reset."}
   
+class BpmnPath(BaseModel):
+    path: str
+final_bpmn_model_path: Optional[str] = None
+@app.post("/final-bpmn-path/")
+def receive_final_bpmn_path(data: BpmnPath):
+    """Accept and store the path of the final BPMN model."""
+    global final_bpmn_model_path
+    print(f"\nReceived final BPMN model path: {data.path}\n")
+    final_bpmn_model_path = data.path
+    return {"message": "Final BPMN path received successfully", "path": data.path}
+
+@app.get("/final-bpmn-path/")
+def get_final_bpmn_path():
+    """Return the path of the final BPMN model if available."""
+    if final_bpmn_model_path is None:
+        raise HTTPException(status_code=404, detail="Final BPMN model path not available yet.")
+    return JSONResponse(content={"path": final_bpmn_model_path})
+
+@app.delete("/final-bpmn-path/")
+def reset_final_bpmn_path():
+    """Reset the final BPMN model path to None."""
+    global final_bpmn_model_path
+    final_bpmn_model_path = None
+    return {"message": "Final BPMN model path has been reset."}
+
 if __name__ == "__main__":
     import uvicorn
     

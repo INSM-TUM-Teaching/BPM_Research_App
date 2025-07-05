@@ -338,6 +338,7 @@ class Simod:
 
         # --- Add BPMN diagram to the model --- #
         add_bpmn_diagram_to_model(self.final_bps_model.process_model)
+        self._send_final_bpmn_path_to_server(self.final_bps_model.process_model)
         
         # --- Running Prosimos --- #
         print_section("Running best results with Prosimos")
@@ -365,7 +366,6 @@ class Simod:
             print("Prosimos simulation finished successfully.")
             print(f"Simulated event log saved to: {log_out_path}")
             print(f"Simulation statistics saved to: {stat_out_path}")
-            print("Prosimos output:\n", result.stdout)
             self._send_final_prosimos_stats_to_server(stat_out_path, log_out_path)
         except FileNotFoundError:
             print("ERROR: Could not run Prosimos. 'poetry' command not found.")
@@ -376,6 +376,32 @@ class Simod:
             print("Prosimos error (stderr):\n", e.stderr)
             print("Prosimos failed\n", e.stderr)
 
+    
+    def _send_final_bpmn_path_to_server(self, bpmn_path: Path):
+        """
+        Sends the path of the best BPMN model to the FastAPI server.
+        """
+        print_section("Sending final BPS model path to the server")
+        if not bpmn_path.exists():
+            print(f"Final BPMN file not found at {bpmn_path}. Cannot send path.")
+            return
+
+        try:
+            # Resolve path to absolute and convert to string
+            absolute_path_str = str(bpmn_path.resolve())
+            print(f'"path": "{absolute_path_str}"')
+            # Send the absolute path
+            payload = {"path": absolute_path_str}
+            server_url = "http://127.0.0.1:8000/final-bpmn-path/"
+            print(f"Preparing to send POST request to {server_url} with payload: {payload}")
+            response = requests.post(server_url, json=payload, timeout=10)
+            response.raise_for_status()
+            print(f"Successfully sent final BPMN path to the server. Response: {response.json()}")
+        except requests.exceptions.RequestException as e:
+            print(f"Could not connect to the API server at {server_url}. "
+                  f"Please ensure the server is running. Details: {e}")
+        except Exception as e:
+            print(f"An unexpected error occurred while sending final BPMN path to the server: {e}")
     
     def _send_final_prosimos_stats_to_server(self, stat_path: str, log_path: str):
         """
