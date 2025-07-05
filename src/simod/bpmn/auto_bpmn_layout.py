@@ -10,9 +10,7 @@ from typing import Dict, List, Set, Tuple
 
 from lxml import etree
 
-SRC  = Path("../../../server/outputs/3_activity_entire_case/best_result/filtered_event_log_20250626_145312.bpmn") 
-DEST = Path("../../../server/outputs/3_activity_entire_case/best_result/3_activity_entire_case.bpmn")                     
-
+# Define namespaces and constants
 NS = {
     "bpmn":   "http://www.omg.org/spec/BPMN/20100524/MODEL",
     "bpmndi": "http://www.omg.org/spec/BPMN/20100524/DI",
@@ -42,6 +40,57 @@ if not hasattr(itertools, "pairwise"):
     itertools.pairwise = _pairwise 
 
 _ref_attr_re = re.compile(r"(Ref$|^default$|^sourceRef$|^targetRef$)")
+
+def create_layout_bpmn(src_path: str) -> str:
+    """
+    Create a BPMN file with auto layout from the source BPMN file.
+    Returns the path to the output file with layout.
+    
+    Args:
+        src_path (str): Path to the input BPMN file
+        
+    Returns:
+        str: Path to the output file with layout
+    """
+    import datetime
+    import os
+    
+    # Create a log file in the same directory as the input
+    log_file = Path(src_path).parent / "bpmn_layout.log"
+    
+    def log_message(message):
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        with open(log_file, 'a', encoding='utf-8') as f:
+            f.write(f"[{timestamp}] {message}\n")
+        print(message)  # Keep print as well
+    
+    log_message(f"=== AUTO LAYOUT START ===")
+    log_message(f"Input path: {src_path}")
+    
+    src = Path(src_path)
+    log_message(f"Source path object: {src}")
+    log_message(f"Source exists: {src.exists()}")
+    
+    if not src.exists():
+        log_message(f"ERROR: Input BPMN not found: {src}")
+        raise FileNotFoundError(f"Input BPMN not found: {src}")
+    
+    # Create output path in the same directory with 'output_' prefix
+    dest = src.parent / f"output_{src.name}"
+    log_message(f"Destination path: {dest}")
+    
+    try:
+        result = process_bpmn_layout(src, dest)
+        log_message(f"Process result: {result}")
+        log_message(f"Output file exists after processing: {dest.exists()}")
+        if dest.exists():
+            log_message(f"Output file size: {dest.stat().st_size} bytes")
+        log_message(f"=== AUTO LAYOUT END SUCCESS ===")
+        return result
+    except Exception as e:
+        log_message(f"ERROR in process_bpmn_layout: {str(e)}")
+        log_message(f"=== AUTO LAYOUT END FAILED ===")
+        raise
 
 def get_element_dimensions(element: etree._Element) -> Tuple[int, int]:
     """Return the width/height tuple appropriate for a BPMN element tag."""
@@ -137,14 +186,24 @@ def calc_border_connection(
     )
     return (int(way_src[0]), int(way_src[1])), (int(way_tgt[0]), int(way_tgt[1]))
 
-def main() -> None:
-    if not SRC.exists():
-        raise SystemExit(f"[ERROR] Input BPMN not found: {SRC}")
-    print(f"→ Input : {SRC}")
-    print(f"→ Output: {DEST}")
+def process_bpmn_layout(src: Path, dest: Path) -> str:
+    """Process the BPMN layout and return the output path."""
+    import datetime
+    
+    # Create a log file in the same directory as the input
+    log_file = src.parent / "bpmn_layout.log"
+    
+    def log_message(message):
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        with open(log_file, 'a', encoding='utf-8') as f:
+            f.write(f"[{timestamp}] {message}\n")
+        print(message)  # Keep print as well
+    
+    log_message(f"-> Input : {src}")
+    log_message(f"-> Output: {dest}")
 
     parser = etree.XMLParser(remove_blank_text=True)
-    tree   = etree.parse(str(SRC), parser)
+    tree   = etree.parse(str(src), parser)
     root   = tree.getroot()
 
     process = root.find(".//bpmn:process", namespaces=NS)
@@ -160,9 +219,24 @@ def main() -> None:
 
     build_flow_based_diagram(root, process)
 
-    tree.write(str(DEST), encoding="UTF-8",
+    # Ensure the parent directory exists
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    
+    tree.write(str(dest), encoding="UTF-8",
                pretty_print=True, xml_declaration=True)
-    print("✓ Diagram successfully generated.")
+    log_message("+ Diagram successfully generated.")
+    log_message(f"+ Output file written: {dest}")
+    log_message(f"+ Output file exists: {dest.exists()}")
+    log_message(f"+ Output file size: {dest.stat().st_size if dest.exists() else 'N/A'} bytes")
+    
+    # Debug: Check if the output contains layout information
+    if dest.exists():
+        with open(dest, 'r', encoding='utf-8') as f:
+            content_sample = f.read(500)
+            has_layout = 'bpmndi:BPMNDiagram' in content_sample or 'bpmndi:BPMNPlane' in content_sample
+            log_message(f"+ Output file has layout information: {has_layout}")
+    
+    return str(dest)
 
 def clean_incoming_outgoing_texts(process: etree._Element) -> None:
     """Strip whitespace from <incoming>/<outgoing> text contents."""
@@ -342,6 +416,22 @@ def build_flow_based_diagram(root: etree._Element,
         etree.SubElement(edge, q(DI, "waypoint"),
                          x=str(way_tgt[0]), y=str(way_tgt[1]))
 
+def main() -> None:
+    """Main function for command line usage."""
+    import sys
+    if len(sys.argv) < 2:
+        print("Usage: python auto_bpmn_layout.py <input_bpmn_file>")
+        print("Example: python auto_bpmn_layout.py my_model.bpmn")
+        print("Output will be saved as: output_my_model.bpmn")
+        sys.exit(1)
+    
+    src_path = sys.argv[1]
+    try:
+        output_path = create_layout_bpmn(src_path)
+        print(f"✓ Layout created successfully: {output_path}")
+    except Exception as e:
+        print(f"✗ Error: {e}")
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()

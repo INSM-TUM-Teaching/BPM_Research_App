@@ -3,16 +3,12 @@ import {
   Popover, Paper, Checkbox, Button, Stack, List, ListItem, ListItemIcon, 
   ListItemText, Divider, Box, Typography, TextField, InputAdornment,
   Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions,
-  FormControl, RadioGroup, FormControlLabel, Radio
+  Tooltip
 } from "@mui/material";
 import { ButtonBase } from "@mui/material";
 import SearchIcon from '@mui/icons-material/Search';
 import InfoIcon from '@mui/icons-material/Info';
 import WarningIcon from '@mui/icons-material/Warning';
-import FilterAltIcon from '@mui/icons-material/FilterAlt';
-
-// Export the ActivityFilterMode type
-export type ActivityFilterMode = 'rows' | 'cases';
 
 interface Props {
   anchorEl: HTMLElement | null;
@@ -20,10 +16,9 @@ interface Props {
   activities: string[];
   selected: string[];
   onClose: () => void;
-  onApply: (selected: string[], filterMode?: ActivityFilterMode) => void;
+  onApply: (selected: string[]) => void;
   activityUsageData?: { [activity: string]: number };
   allCaseIds?: string[];
-  filterMode?: ActivityFilterMode;
 }
 
 const ESSENTIAL_ACTIVITY_COLOR = '#900020';
@@ -36,15 +31,13 @@ const ActivitiesPopover: React.FC<Props> = ({
   onClose, 
   onApply,
   activityUsageData = {},
-  allCaseIds = [],
-  filterMode = 'rows'
+  allCaseIds = []
 }) => {
   const [localSelected, setLocalSelected] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [showConfirmDialog, setShowConfirmDialog] = useState<boolean>(false);
   const [pendingSelection, setPendingSelection] = useState<string[]>([]);
   const [removedActivities, setRemovedActivities] = useState<string[]>([]);
-  const [localFilterMode, setLocalFilterMode] = useState<ActivityFilterMode>(filterMode);
 
   // Calculate the total number of cases
   const totalCases = allCaseIds.length || 
@@ -68,10 +61,6 @@ const ActivitiesPopover: React.FC<Props> = ({
   useEffect(() => {
     setLocalSelected(selected);
   }, [selected]);
-  
-  useEffect(() => {
-    setLocalFilterMode(filterMode);
-  }, [filterMode]);
 
   const handleToggle = (activity: string) => {
     const newSelection = localSelected.includes(activity)
@@ -88,9 +77,9 @@ const ActivitiesPopover: React.FC<Props> = ({
     }
   };
 
-  // Modified to pass filter mode when applying
+  // Modified to only pass selected activities (always filter entire cases)
   const handleApply = () => {
-    onApply(localSelected, localFilterMode);
+    onApply(localSelected);
   };
 
   const handleConfirmRemoval = () => {
@@ -155,11 +144,6 @@ const ActivitiesPopover: React.FC<Props> = ({
     });
     
     return casesWithActivitiesOnly.size;
-  };
-
-  // Handle filter mode change
-  const handleFilterModeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setLocalFilterMode(event.target.value as ActivityFilterMode);
   };
 
   return (
@@ -260,44 +244,14 @@ const ActivitiesPopover: React.FC<Props> = ({
 
           <Divider style={{ marginTop: 8 }} />
           
-          {/* Filter Mode Selection */}
-          <Box sx={{ mt: 2, mb: 1 }}>
-            <Typography variant="subtitle2" display="flex" alignItems="center">
-              <FilterAltIcon fontSize="small" sx={{ mr: 0.5 }} />
-              Filter Mode:
+          {/* Information about filter behavior */}
+          <Box sx={{ mt: 2, mb: 1, p: 1.5, bgcolor: '#e3f2fd', borderRadius: 1, border: '1px solid #bbdefb' }}>
+            <Typography variant="body2" color="text.secondary" display="flex" alignItems="flex-start">
+              <Tooltip title="Filter Information" arrow>
+                <InfoIcon fontSize="small" sx={{ mr: 0.5, mt: 0.1, color: 'primary.main' }} />
+              </Tooltip>
+              When you unselect an activity, all cases that contain that activity will be removed from the event log.
             </Typography>
-            <FormControl component="fieldset" size="small">
-              <RadioGroup
-                value={localFilterMode}
-                onChange={handleFilterModeChange}
-                row
-              >
-                <FormControlLabel 
-                  value="rows" 
-                  control={<Radio size="small" />} 
-                  label={
-                    <Typography variant="body2">
-                      Filter rows only 
-                      <Typography variant="caption" color="text.secondary" display="block">
-                        Only hide rows with selected activities
-                      </Typography>
-                    </Typography>
-                  }
-                />
-                <FormControlLabel 
-                  value="cases" 
-                  control={<Radio size="small" />} 
-                  label={
-                    <Typography variant="body2">
-                      Filter entire cases
-                      <Typography variant="caption" color="text.secondary" display="block">
-                        Hide all rows from cases with these activities
-                      </Typography>
-                    </Typography>
-                  }
-                />
-              </RadioGroup>
-            </FormControl>
           </Box>
 
           <Stack
@@ -360,10 +314,12 @@ const ActivitiesPopover: React.FC<Props> = ({
           </List>
           
           <Typography variant="body1" color="error" sx={{ mt: 2 }}>
-            This will affect approximately {getCasesAffectedCount(removedActivities)} cases in your event log.
+            This will remove approximately {getCasesAffectedCount(removedActivities)} cases from your event log.
           </Typography>
           
           <Typography variant="body2" sx={{ mt: 1 }}>
+            <strong>Note:</strong> All cases containing {removedActivities.length > 1 ? 'these activities' : 'this activity'} will be completely removed from the log.
+            <br />
             Are you sure you want to remove {removedActivities.length > 1 ? 'these activities' : 'this activity'} from your filter?
           </Typography>
         </DialogContent>

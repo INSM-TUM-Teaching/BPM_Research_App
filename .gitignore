@@ -13,6 +13,7 @@ input_files
 log/
 .pytest_cache/
 simod-env/
+node_modules/
 uploaded_logs
 
 *.dat
