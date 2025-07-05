@@ -340,6 +340,36 @@ def reset_selected_model():
     selected_model_path = None
     return {"message": "Selection reset"}
 
+########## API ENDPOINTS - EXPORTING SIMULATION DATA ##########
+
+#### CANONICAL MODEL API ####
+
+# In-memory storage for the canonical model JSON
+canonical_model_data: Optional[Dict[str, Any]] = None
+
+# POST endpoint to receive and store the canonical model JSON
+@app.post("/api/upload-canonical-model/")
+def receive_canonical_model(data: Dict[str, Any] = Body(...)):
+    global canonical_model_data
+    canonical_model_data = data
+    return {"message": "Canonical model received successfully"}
+
+# GET endpoint to retrieve the canonical model JSON
+@app.get("/api/upload-canonical-model/")
+def get_canonical_model():
+    if canonical_model_data is None:
+        return {"message": "No canonical model has been received yet."}
+    return JSONResponse(content=canonical_model_data)
+
+# DELETE endpoint to reset stored canonical model data
+@app.delete("/api/upload-canonical-model/")
+def reset_canonical_model():
+    global canonical_model_data
+    canonical_model_data = None
+    return {"message": "Canonical model data has been reset."}
+
+
+
 ########## API ENDPOINTS - EVENT LOGS ##########
 
 # Add CORS settings - very important!
