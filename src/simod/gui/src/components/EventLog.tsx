@@ -99,6 +99,10 @@ const EventLog: React.FC = () => {
     } 
     // If full endpoint doesn't exist, we'll fetch all pages sequentially and combine the data
     else {
+      console.log("Resetting pipeline state...");
+      await fetch("http://localhost:8000/pipeline/reset", {
+        method: "POST"
+      });
       console.log("Fetching all data page by page...");
       // Fetch first page and learn total row count
       const firstPageResponse = await fetch("http://localhost:8000/api/event-log?limit=1000&offset=0");
