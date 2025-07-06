@@ -44,6 +44,7 @@ const BestBpmns: React.FC = () => {
   const [bpmnLoading, setBpmnLoading] = useState<Set<number>>(new Set());
   const [bpmnErrors, setBpmnErrors] = useState<Map<number, string>>(new Map());
   const [isPipelineRunning, setIsPipelineRunning] = useState(false);
+  const [pipelineCompleted, setPipelineCompleted] = useState(false);
   const [notification, setNotification] = useState<{
     open: boolean;
     message: string;
@@ -299,12 +300,14 @@ const BestBpmns: React.FC = () => {
 
       const completed = await pollCompletion(); 
       if (completed) {
-        setNotification({
-          open: true,
-          message: '✅ Pipeline completed successfully!',
-          severity: 'success',
+        setPipelineCompleted(true); // ✅ Pipeline completed successfully
+        requestAnimationFrame(() => {
+          setTimeout(() => {
+            setPipelineCompleted(false);
+            setIsPipelineRunning(false);
+          }, 3000); // 3 seconds delay before redirect
         });
-        setTimeout(() => navigate("/"), 2000);
+      
       } else {
         throw new Error("Pipeline did not complete in time.");
       }
@@ -316,9 +319,7 @@ const BestBpmns: React.FC = () => {
         message: `❌ Failed to select model: ${err instanceof Error ? err.message : String(err)}`,
         severity: 'error'
       });
-    } finally {
-    setIsPipelineRunning(false);
-    }
+    } 
   };
 
   const handleCloseNotification = () => {
@@ -447,7 +448,7 @@ const BestBpmns: React.FC = () => {
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
         <CircularProgress size={60} />
         <Typography variant="h5" sx={{ ml: 3 }}>
-          Running pipeline... Please wait.
+          {pipelineCompleted ? '✅ Successfully completed!' : 'Running pipeline... Please wait.'}
         </Typography>
       </Box>
     );
