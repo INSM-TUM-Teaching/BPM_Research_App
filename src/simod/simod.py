@@ -322,6 +322,13 @@ class Simod:
         with json_parameters_path.open("w") as f:
             json.dump(self.final_bps_model.to_prosimos_format(), f)
 
+
+        # Send the final BPS model parameters to the FastAPI server
+        send_simulation_parameters_json(
+            json_data=self.final_bps_model.to_prosimos_format(),
+            post_url="http://localhost:8000/simulation-parameters/"
+        )
+
         # --- Evaluate final BPS model --- #
         if self._settings.common.perform_final_evaluation:
             print_subsection("Evaluate")
@@ -334,6 +341,7 @@ class Simod:
         # --- Export settings and clean temporal files --- #
         print_section(f"Exporting canonical model, runtimes, settings and cleaning up intermediate files")
         canonical_model_path = self._best_result_dir / "canonical_model.json"
+        # Declaring the post URL for the canonical model export to the FastAPI server
         post_url = "http://localhost:8000/api/upload-canonical-model/"
         _export_canonical_model(canonical_model_path, best_control_flow_params, best_resource_model_params, post_url=post_url)
         runtimes_model_path = self._best_result_dir / "runtimes.json"
@@ -562,6 +570,33 @@ def _export_canonical_model(
             print(f"Failed to send canonical model to {post_url}: {e}")
             print_message("------------------------------------------")
 
+def send_simulation_parameters_json(
+    json_data: dict,
+    post_url: str
+):
+     # Reset previous state (Same URL for both DELETE and POST)
+    try:
+        response = requests.delete(post_url)
+        response.raise_for_status()
+        print_message("-----------------------------------------------------")
+        print_message("✅ Successfully reset previous simulation parameters.")
+        print_message("-----------------------------------------------------")
+    except requests.RequestException as e:
+        print_message("-----------------------------------------------------")
+        print(f"Failed to reset simulation parameters via {post_url}: {e}")
+        print_message("-----------------------------------------------------")
+
+    # Send new simulation parameters
+    try:
+        response = requests.post(post_url, json=json_data)
+        response.raise_for_status()
+        print_message("-------------------------------------------")
+        print_message("✅ Successfully sent simulation parameters.")
+        print_message("-------------------------------------------")
+    except requests.RequestException as e:
+        print_message("----------------------------------------------------------")
+        print(f"Failed to send simulation parameters via {post_url}: {e}")
+        print_message("----------------------------------------------------------")
 
 def _export_runtimes(
         file_path: Path,

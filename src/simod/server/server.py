@@ -342,7 +342,7 @@ def reset_selected_model():
 
 ########## API ENDPOINTS - EXPORTING SIMULATION DATA ##########
 
-#### CANONICAL MODEL API ####
+#### ENDPOINTS FOR EXPORTING CANONICAL MODEL ####
 
 # In-memory storage for the canonical model JSON
 canonical_model_data: Optional[Dict[str, Any]] = None
@@ -368,6 +368,28 @@ def reset_canonical_model():
     canonical_model_data = None
     return {"message": "Canonical model data has been reset."}
 
+##### ENDPOINTS FOR EXPORTING SIMULATION DATA #####
+
+# Simulation parameters memory store
+simulation_parameters: Optional[Dict] = None
+
+@app.post("/simulation-parameters/")
+def receive_simulation_parameters(data: Dict = Body(...)):
+    global simulation_parameters
+    simulation_parameters = data
+    return {"message": "Simulation parameters received successfully"}
+
+@app.get("/simulation-parameters/")
+def get_simulation_parameters():
+    if simulation_parameters is None:
+        return {"message": "No simulation parameters have been received yet."}
+    return JSONResponse(content={"parameters": simulation_parameters})
+
+@app.delete("/simulation-parameters/")
+def reset_simulation_parameters():
+    global simulation_parameters
+    simulation_parameters = None
+    return {"message": "Simulation parameters have been reset."}
 
 
 ########## API ENDPOINTS - EVENT LOGS ##########
