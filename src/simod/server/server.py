@@ -342,6 +342,58 @@ def reset_selected_model():
     selected_model_path = None
     return {"message": "Selection reset"}
 
+########## API ENDPOINTS - EXPORTING SIMULATION DATA ##########
+
+#### ENDPOINTS FOR EXPORTING CANONICAL MODEL ####
+
+# In-memory storage for the canonical model JSON
+canonical_model_data: Optional[Dict[str, Any]] = None
+
+# POST endpoint to receive and store the canonical model JSON
+@app.post("/api/upload-canonical-model/")
+def receive_canonical_model(data: Dict[str, Any] = Body(...)):
+    global canonical_model_data
+    canonical_model_data = data
+    return {"message": "Canonical model received successfully"}
+
+# GET endpoint to retrieve the canonical model JSON
+@app.get("/api/upload-canonical-model/")
+def get_canonical_model():
+    if canonical_model_data is None:
+        return {"message": "No canonical model has been received yet."}
+    return JSONResponse(content=canonical_model_data)
+
+# DELETE endpoint to reset stored canonical model data
+@app.delete("/api/upload-canonical-model/")
+def reset_canonical_model():
+    global canonical_model_data
+    canonical_model_data = None
+    return {"message": "Canonical model data has been reset."}
+
+##### ENDPOINTS FOR EXPORTING SIMULATION DATA #####
+
+# Simulation parameters memory store
+simulation_parameters: Optional[Dict] = None
+
+@app.post("/simulation-parameters/")
+def receive_simulation_parameters(data: Dict = Body(...)):
+    global simulation_parameters
+    simulation_parameters = data
+    return {"message": "Simulation parameters received successfully"}
+
+@app.get("/simulation-parameters/")
+def get_simulation_parameters():
+    if simulation_parameters is None:
+        return {"message": "No simulation parameters have been received yet."}
+    return JSONResponse(content={"parameters": simulation_parameters})
+
+@app.delete("/simulation-parameters/")
+def reset_simulation_parameters():
+    global simulation_parameters
+    simulation_parameters = None
+    return {"message": "Simulation parameters have been reset."}
+
+
 ########## API ENDPOINTS - EVENT LOGS ##########
 
 # Add CORS settings - very important!
