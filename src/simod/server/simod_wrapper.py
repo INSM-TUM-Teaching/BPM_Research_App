@@ -71,6 +71,7 @@ def main():
     print("Clearing previous run state...")
     try:
         requests.post("http://localhost:8000/api/event-log/clear")
+        requests.post("http://localhost:8000/pipeline/reset")
     except Exception as e:
         print(f"API access error during clear: {str(e)}")
 
@@ -86,6 +87,7 @@ def main():
         
         print(f"Event log file provided: {event_log_path}. Uploading to server...")
         uploaded_path = send_event_log_to_api(event_log_path)
+        # print(event_log_path)
         if not uploaded_path:
             print("ERROR: Event log file could not be uploaded to the API.")
             sys.exit(1)
@@ -224,6 +226,73 @@ def send_event_log_to_api(log_path):
     except Exception as e:
         print(f"Error sending event log to API: {e}")
         return None
+# def send_event_log_to_api(file_path: str) -> bool:
+#     """
+#     Sends the specified event log file to the FastAPI server.
+
+#     Args:
+#         file_path (str): The absolute or relative path to the .csv event log file.
+
+#     Returns:
+#         bool: True if the upload was successful (HTTP 200), False otherwise.
+#     """
+#     # --- 1. Pre-flight Checks: Validate the file before sending ---
+#     print(f"\n[UPLOADER] Attempting to send file: {file_path}")
+    
+#     if not os.path.exists(file_path):
+#         print(f"[UPLOADER-ERROR] File not found at path: {file_path}")
+#         return False
+        
+#     if not os.path.isfile(file_path):
+#         print(f"[UPLOADER-ERROR] Path is a directory, not a file: {file_path}")
+#         return False
+
+#     # Get the base filename for the request
+#     file_name = os.path.basename(file_path)
+    
+#     # --- 2. Prepare the Request ---
+#     # The key 'file' MUST match the parameter name in the FastAPI endpoint:
+#     # async def upload_event_log(file: UploadFile = File(...)):
+#     #                                  ^^^^
+#     upload_url = "http://localhost:8000/api/event-log/upload"
+    
+#     print(f"[UPLOADER] Preparing to upload '{file_name}' to {upload_url}")
+
+#     try:
+#         # Open the file in binary read mode ('rb')
+#         with open(file_path, 'rb') as f:
+#             # The 'files' dictionary format is specific:
+#             # 'key': (filename, file_object, content_type)
+#             files = {'file': (file_name, f, 'text/csv')}
+            
+#             # --- 3. Send the POST Request ---
+#             response = requests.post(upload_url, files=files, timeout=60) # 60-second timeout
+
+#             # --- 4. Handle the Server's Response ---
+#             if response.status_code == 200:
+#                 print(f"[UPLOADER-SUCCESS] Server accepted the file.")
+#                 print(f"Server response: {response.json()}")
+#                 return True
+#             else:
+#                 # If the server returned an error, print the details
+#                 print(f"[UPLOADER-ERROR] Server returned a non-200 status: {response.status_code}")
+#                 try:
+#                     # Try to get the detailed error message from the JSON response
+#                     error_details = response.json()
+#                     print(f"Server error detail: {error_details.get('detail', 'No detail provided.')}")
+#                 except requests.exceptions.JSONDecodeError:
+#                     # If the response isn't JSON, print the raw text
+#                     print(f"Server raw response: {response.text}")
+#                 return False
+
+#     except requests.exceptions.RequestException as e:
+#         # Catch network errors (e.g., server down, connection refused)
+#         print(f"[UPLOADER-CRITICAL-ERROR] A network error occurred: {e}")
+#         return False
+#     except Exception as e:
+#         # Catch any other unexpected errors during the process
+#         print(f"[UPLOADER-CRITICAL-ERROR] An unexpected error occurred: {e}")
+#         return False
 
 def wait_for_upload():
     """Waits for the user to upload a file via the web interface."""
@@ -365,3 +434,6 @@ def cleanup_temp_config(temp_config_path):
 
 if __name__ == "__main__":
     main()
+    requests.post("http://localhost:8000/pipeline/complete")
+
+    

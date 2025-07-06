@@ -13,6 +13,8 @@ from pydantic import BaseModel
 import csv
 from io import StringIO
 from typing import List, Dict, Any
+import shutil
+import traceback
 
 # Prosimos CSV hjas multiple sections so parsing to structured JSON object
 def parse_prosimos_stats(csv_content: str) -> Dict[str, Any]:
@@ -410,6 +412,58 @@ async def upload_event_log(file: UploadFile = File(...)):
         print(f"Event log upload error: {str(e)}")
         print(error_details)
         raise HTTPException(status_code=500, detail=f"Error uploading event log: {str(e)}")
+# @app.post("/api/event-log/upload")
+# async def upload_event_log(file: UploadFile = File(...)):
+#     """Upload event log file safely and make it accessible via API"""
+#     global CURRENT_EVENT_LOG_PATH
+    
+#     try:
+#         # Sanitize the filename to prevent directory traversal issues
+#         safe_filename = os.path.basename(file.filename)
+#         if not safe_filename:
+#             raise HTTPException(status_code=400, detail="Invalid or empty filename provided.")
+
+#         file_path = UPLOAD_DIR / safe_filename
+        
+#         # Save the file in chunks to avoid high memory usage
+#         with open(file_path, "wb") as buffer:
+#             shutil.copyfileobj(file.file, buffer)
+        
+#         # Store the absolute path for robustness
+#         CURRENT_EVENT_LOG_PATH = str(file_path.resolve())
+        
+#         print(f"Event log file successfully uploaded: {safe_filename} ({os.path.getsize(file_path)} bytes)")
+#         print(f"Absolute path set to: {CURRENT_EVENT_LOG_PATH}")
+        
+#         # --- START OF FIX ---
+#         # Verify content by reading the first few rows, handling compression
+#         print("Verifying uploaded file content...")
+#         try:
+#             # Check the file extension to decide how to read it
+#             if CURRENT_EVENT_LOG_PATH.endswith('.gz'):
+#                 # Tell pandas to decompress the gzipped file
+#                 df = pd.read_csv(CURRENT_EVENT_LOG_PATH, nrows=5, compression='gzip')
+#             else:
+#                 # Read as a normal CSV
+#                 df = pd.read_csv(CURRENT_EVENT_LOG_PATH, nrows=5)
+                
+#             print(f"Verification successful. Columns found: {', '.join(df.columns.tolist())}")
+#         except Exception as e:
+#             # This is now a non-critical warning, as the file is already saved.
+#             print(f"Warning: Could not read sample from uploaded event log: {str(e)}")
+#         # --- END OF FIX ---
+        
+#         return {
+#             "status": "success", 
+#             "message": f"Event log file successfully uploaded: {safe_filename}",
+#             "file_path": CURRENT_EVENT_LOG_PATH
+#         }
+#     except Exception as e:
+#         # Log the full error traceback for easier debugging
+#         error_details = traceback.format_exc()
+#         print(f"Event log upload error: {str(e)}")
+#         print(error_details)
+#         raise HTTPException(status_code=500, detail=f"Error uploading event log: {str(e)}")
 
 # Add the missing endpoint for the wrapper to poll for UI uploads
 @app.get("/api/event-log/uploaded-path")
@@ -779,6 +833,31 @@ def reset_final_bpmn_path():
     global final_bpmn_model_path
     final_bpmn_model_path = None
     return {"message": "Final BPMN model path has been reset."}
+
+# --- 在 server.py 顶部添加全局变量 ---
+pipeline_state = {"completed": False}
+
+# --- 重置 pipeline 状态 ---
+@app.post("/pipeline/reset")
+def reset_pipeline_state():
+    global pipeline_state
+    pipeline_state["completed"] = False
+    print("🔁 Pipeline state reset to NOT completed.")
+    return {"status": "reset", "completed": False}
+
+# --- 标记 pipeline 完成 ---
+@app.post("/pipeline/complete")
+def mark_pipeline_completed():
+    global pipeline_state
+    pipeline_state["completed"] = True
+    print("✅ Pipeline marked as completed.")
+    return {"status": "completed", "completed": True}
+
+# --- 查询当前状态 ---
+@app.get("/pipeline/status")
+def get_pipeline_status():
+    return {"completed": pipeline_state["completed"]}
+
 
 if __name__ == "__main__":
     import uvicorn
