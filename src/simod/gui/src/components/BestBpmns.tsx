@@ -305,6 +305,7 @@ const BestBpmns: React.FC = () => {
           setTimeout(() => {
             setPipelineCompleted(false);
             setIsPipelineRunning(false);
+            navigate("/"); // Redirect to homepage after 3 seconds
           }, 3000); // 3 seconds delay before redirect
         });
       
