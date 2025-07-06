@@ -886,10 +886,10 @@ def reset_final_bpmn_path():
     final_bpmn_model_path = None
     return {"message": "Final BPMN model path has been reset."}
 
-# --- 在 server.py 顶部添加全局变量 ---
+# --- pipeline state ---
 pipeline_state = {"completed": False}
 
-# --- 重置 pipeline 状态 ---
+# --- reset pipeline state ---
 @app.post("/pipeline/reset")
 def reset_pipeline_state():
     global pipeline_state
@@ -897,7 +897,7 @@ def reset_pipeline_state():
     print("🔁 Pipeline state reset to NOT completed.")
     return {"status": "reset", "completed": False}
 
-# --- 标记 pipeline 完成 ---
+# --- mark pipeline as completed ---
 @app.post("/pipeline/complete")
 def mark_pipeline_completed():
     global pipeline_state
@@ -905,7 +905,7 @@ def mark_pipeline_completed():
     print("✅ Pipeline marked as completed.")
     return {"status": "completed", "completed": True}
 
-# --- 查询当前状态 ---
+# --- inquiry pipeline status ---
 @app.get("/pipeline/status")
 def get_pipeline_status():
     return {"completed": pipeline_state["completed"]}
