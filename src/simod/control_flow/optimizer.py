@@ -241,17 +241,50 @@ class ControlFlowOptimizer:
         # Process best results
         results = pd.DataFrame(self._bayes_trials.results).sort_values("loss")
 
-        # Filter top 3 successful results (status == STATUS_OK) for expert to select the best BPMN model 
-        top_3_ok_results = results[results.status == STATUS_OK].head(3)
+        # # Filter top 3 successful results (status == STATUS_OK) for expert to select the best BPMN model 
+        # top_3_ok_results = results[results.status == STATUS_OK].head(3)
+        # # Save DataFrame to output folder
+        # # Sorted values based on loss (two_gram_distance:SIMOD selection criteria for the best BPMN model) are saved in the output folder
+        # # This information is useful for the expert to select the best BPMN model that he think better fits the process
+        # print_message("-------------------------------------------------------")
+        # print_message("✅ Saving control flow optimization results to CSV file")
+        # print_message("-------------------------------------------------------") 
+        # output_file = self.base_directory / "control_flow_optimization_results.csv"
+        # top_3_ok_results.to_csv(output_file, index=False)
+        
+   
+        print_message("------------------------------------------------------------------")
+        print_message("✅ Selecting models with lowest, mid-point, and highest loss values")
+        print_message("------------------------------------------------------------------")
+        ok_results = results[results.status == STATUS_OK].sort_values("loss").reset_index(drop=True)
+        num_ok_results = len(ok_results)
+        selected_models_df = pd.DataFrame()
+        if num_ok_results > 0:
+            # Select the model with the LOWEST loss (the best one)
+            lowest_loss_model = ok_results.iloc[[0]]
+            # Select the model with the HIGHEST loss (the most different one)
+            highest_loss_model = ok_results.iloc[[-1]]     
+            # Select the model with the MID-POINT loss
+            # Calculate the index for the middle element of the sorted list
+            median_index = num_ok_results // 2
+            mid_point_model = ok_results.iloc[[median_index]]
+            # Combine the selected models into a single DataFrame
+            selected_models_df = pd.concat([lowest_loss_model, mid_point_model, highest_loss_model])
+            # Remove duplicates in case there are fewer than 3 models
+            selected_models_df = selected_models_df.drop_duplicates()
+        else:
+            print_message("⚠️ No successful optimization iterations found to select from.")
+        
+        # Assign the final selection to the variable the rest of the code uses
+        top_3_ok_results = selected_models_df
 
         # Save DataFrame to output folder
-        # Sorted values based on loss (two_gram_distance:SIMOD selection criteria for the best BPMN model) are saved in the output folder
-        # This information is useful for the expert to select the best BPMN model that he think better fits the process
         print_message("-------------------------------------------------------")
         print_message("✅ Saving control flow optimization results to CSV file")
         print_message("-------------------------------------------------------") 
         output_file = self.base_directory / "control_flow_optimization_results.csv"
         top_3_ok_results.to_csv(output_file, index=False)
+
 
         # POST the results to an external endpoint for GUI display and find best 3 BPMN model paths
         try:
