@@ -44,19 +44,19 @@ control_flow:
   # Number of optimization iterations over the search space
   num_iterations: 5
   # Number of times to evaluate each iteration (using the mean of all of them)
-  num_evaluations_per_iteration: 2
+  num_evaluations_per_iteration: 1
   # Method for discovering gateway probabilities
   gateway_probabilities: discovery
   # Discover process model with SplitMiner v3
   mining_algorithm: sm1
   # Number of concurrent relations between events to be captured
   epsilon:
-    - 0.05
-    - 0.4
+    - 0.01
+    - 0.9
   # Threshold for filtering the incoming and outgoing edges
   eta:
-    - 0.2
-    - 0.7
+    - 0.05
+    - 0.95
   # Whether to replace non-trivial OR joins or not
   replace_or_joins:
     - true
