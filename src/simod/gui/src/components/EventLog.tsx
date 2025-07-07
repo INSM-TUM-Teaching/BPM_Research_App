@@ -16,6 +16,7 @@ import CategoryIcon from '@mui/icons-material/Category';
 import TuneIcon from '@mui/icons-material/Tune';
 import InfoIcon from '@mui/icons-material/Info';
 import { useNavigate } from "react-router-dom";
+import { all } from "axios";
 //////##/////////////
 
 const EventLog: React.FC = () => {
@@ -66,7 +67,7 @@ const EventLog: React.FC = () => {
     // First check if API (to get complete data) exists
     let completeEndpoint = false;
     try {
-      const testResponse = await fetch("http://localhost:8000/api/event-log/full", { method: 'HEAD' });
+      const testResponse = await fetch("http://localhost:8000/api/event-log/full", { method: 'GET' });
       completeEndpoint = testResponse.ok;
     } catch {
       completeEndpoint = false;
@@ -86,6 +87,7 @@ const EventLog: React.FC = () => {
       }
       
       setAllEventLogs(data.data || []);
+      console.log(allEventLogs, "records loaded successfully.");
       
       // Determine columns
       if (data.data && data.data.length > 0) {
@@ -102,7 +104,8 @@ const EventLog: React.FC = () => {
       console.log("Resetting pipeline state...");
       await fetch("http://localhost:8000/pipeline/reset", {
         method: "POST"
-      });
+      }
+    );
       console.log("Fetching all data page by page...");
       // Fetch first page and learn total row count
       const firstPageResponse = await fetch("http://localhost:8000/api/event-log?limit=1000&offset=0");

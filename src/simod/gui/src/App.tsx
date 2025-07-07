@@ -6,6 +6,8 @@ import EventLog from "./components/EventLog";
 import BestBpmns from "./components/BestBpmns";
 import BpmnViewer from "./components/BpmnViewer";
 import LoadingScreen from "./components/LoadingScreen";
+import ResultsPage from "./components/ResultsPage";
+import ResourceMoelLoadingScreen from "./components/ResourceModelLoading";
 
 
 function App() {
@@ -33,6 +35,12 @@ function App() {
            />
            <Route 
            path="/loading" element={<LoadingScreen />} 
+           />
+          <Route 
+           path="/resource-model-loading" element={<ResourceMoelLoadingScreen/>} 
+           />
+           <Route 
+           path="/results" element={<ResultsPage />} 
            />
         </Routes>
       </div>
