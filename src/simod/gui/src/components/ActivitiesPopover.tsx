@@ -19,6 +19,7 @@ interface Props {
   onApply: (selected: string[]) => void;
   activityUsageData?: { [activity: string]: number };
   allCaseIds?: string[];
+  caseIdColumnName?: string; // Optional prop to show which column is used for case ID
 }
 
 const ESSENTIAL_ACTIVITY_COLOR = '#900020';
@@ -31,7 +32,8 @@ const ActivitiesPopover: React.FC<Props> = ({
   onClose, 
   onApply,
   activityUsageData = {},
-  allCaseIds = []
+  allCaseIds = [],
+  caseIdColumnName = "case_id"
 }) => {
   const [localSelected, setLocalSelected] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>("");
