@@ -75,6 +75,23 @@ interface ScenarioRow {
   "Trace Ocurrences": string;
 }
 
+interface EventDistribution {
+  activity: string;
+  event_id: string;
+  distribution_name: string;
+  distribution_params: Array<{
+    value: number;
+  }>;
+}
+
+interface SimulationParameters {
+  parameters: {
+    event_distribution: EventDistribution[];
+    [key: string]: any;
+  };
+  [key: string]: any;
+}
+
 interface ProsimosStats {
   stats_path: string;
   log_path: string;
@@ -107,6 +124,10 @@ const ResultsPage: React.FC = () => {
   const [bpmnViewer, setBpmnViewer] = useState<any>(null);
   const [bpmnLoading, setBpmnLoading] = useState(false);
   const [bpmnError, setBpmnError] = useState<string | null>(null);
+  const [eventDistribution, setEventDistribution] = useState<EventDistribution[]>([]);
+  const [eventDistributionExpanded, setEventDistributionExpanded] = useState(false);
+  const [eventDistributionLoading, setEventDistributionLoading] = useState(false);
+  const [eventDistributionError, setEventDistributionError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -143,6 +164,33 @@ const ResultsPage: React.FC = () => {
     } catch (err) {
       console.log('BPMN path not available yet');
     }
+  };
+
+  const fetchEventDistribution = async () => {
+    try {
+      setEventDistributionLoading(true);
+      setEventDistributionError(null);
+      
+      const response = await fetch('http://localhost:8000/simulation-parameters/');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data: SimulationParameters = await response.json();
+      setEventDistribution(data.parameters?.event_distribution || []);
+    } catch (err) {
+      setEventDistributionError(err instanceof Error ? err.message : 'Failed to fetch event distribution');
+    } finally {
+      setEventDistributionLoading(false);
+    }
+  };
+
+  const handleEventDistributionToggle = () => {
+    if (!eventDistributionExpanded && eventDistribution.length === 0) {
+      // Fetch data when expanding for the first time
+      fetchEventDistribution();
+    }
+    setEventDistributionExpanded(!eventDistributionExpanded);
   };
 
   const loadBpmnDiagram = async () => {
@@ -211,7 +259,7 @@ const ResultsPage: React.FC = () => {
     const isCurrentlyExpanded = bpmnExpanded;
     
     if (isCurrentlyExpanded) {
-      // Collapsing - destroy viewer
+      
       if (bpmnViewer) {
         try {
           const container = document.getElementById('final-bpmn-container');
@@ -312,6 +360,15 @@ const ResultsPage: React.FC = () => {
     return `$${num.toFixed(2)}`;
   };
 
+  const formatParameter = (value: number) => {
+    if (value === 0) return '0';
+    if (value < 1) return value.toFixed(4);
+    if (value < 1000) return value.toFixed(2);
+    if (value < 1000000) return `${(value / 1000).toFixed(1)}K`;
+    if (value < 1000000000) return `${(value / 1000000).toFixed(1)}M`;
+    return `${(value / 1000000000).toFixed(1)}B`;
+  };
+
   const filterMeaningfulTasks = (tasks: TaskRow[]) => {
     return tasks.filter(task => 
       !task.Name.startsWith('Event_') && 
@@ -384,11 +441,11 @@ const ResultsPage: React.FC = () => {
                 <RefreshIcon />
               </IconButton>
             </Tooltip>
-            <Tooltip title="Download Results">
+            {/* <Tooltip title="Download Results">
               <IconButton color="primary">
                 <DownloadIcon />
               </IconButton>
-            </Tooltip>
+            </Tooltip> */}
             <Button 
               variant="outlined" 
               onClick={() => navigate('/')}
@@ -860,6 +917,123 @@ const ResultsPage: React.FC = () => {
               </TableBody>
             </Table>
           </TableContainer>
+        </CardContent>
+      </Card>
+      <Card elevation={4} sx={{ mb: 4 }}>
+        <CardContent>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <TimelineIcon sx={{ fontSize: 30, color: 'primary.main', mr: 2 }} />
+              <Typography variant="h5" component="h2" sx={{ fontWeight: 'bold' }}>
+                Event Distribution Details
+              </Typography>
+            </Box>
+            <Button
+              onClick={handleEventDistributionToggle}
+              variant="contained"
+              startIcon={eventDistributionExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+            >
+              {eventDistributionExpanded ? 'Hide' : 'View'} Details
+            </Button>
+          </Box>
+          
+          <Divider sx={{ mb: 3 }} />
+          <Collapse in={eventDistributionExpanded}>
+            <Box sx={{ mt: 2 }}>
+              {eventDistributionLoading && (
+                <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
+                  <CircularProgress size={30} />
+                  <Typography sx={{ ml: 2 }}>Loading event distribution...</Typography>
+                </Box>
+              )}
+              
+              {eventDistributionError && (
+                <Alert severity="error" sx={{ mb: 2 }}>
+                  {eventDistributionError}
+                </Alert>
+              )}
+              
+              {!eventDistributionLoading && !eventDistributionError && eventDistribution.length > 0 && (
+                <TableContainer component={Paper} elevation={2}>
+                  <Table>
+                    <TableHead>
+                      <TableRow sx={{ backgroundColor: 'grey.100' }}>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Activity</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Event ID</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Distribution</TableCell>
+                        <TableCell sx={{ fontWeight: 'bold' }}>Parameters</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {eventDistribution.map((event, index) => (
+                        <TableRow 
+                          key={event.event_id || index}
+                          sx={{ 
+                            '&:nth-of-type(odd)': { backgroundColor: 'grey.50' },
+                            '&:hover': { backgroundColor: 'action.hover' }
+                          }}
+                        >
+                          <TableCell>
+                            <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                              {event.activity}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Tooltip title={event.event_id} arrow>
+                              <Typography variant="body2" sx={{ 
+                                fontSize: '0.75rem',
+                                fontFamily: 'monospace',
+                                color: 'text.secondary',
+                                cursor: 'help',
+                                maxWidth: '120px',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis'
+                              }}>
+                                {event.event_id.split('-')[0]}...
+                              </Typography>
+                            </Tooltip>
+                          </TableCell>
+                          <TableCell>
+                            <Chip 
+                              label={event.distribution_name}
+                              color="secondary"
+                              variant="filled"
+                              size="small"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                              {event.distribution_params.map((param, paramIndex) => (
+                                <Tooltip 
+                                  key={paramIndex}
+                                  title={`Parameter ${paramIndex + 1}: ${param.value}`}
+                                  arrow
+                                >
+                                  <Chip
+                                    label={formatParameter(param.value)}
+                                    size="small"
+                                    variant="outlined"
+                                    color="primary"
+                                    sx={{ fontSize: '0.7rem', cursor: 'help' }}
+                                  />
+                                </Tooltip>
+                              ))}
+                            </Box>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              )}
+              
+              {!eventDistributionLoading && !eventDistributionError && eventDistribution.length === 0 && (
+                <Alert severity="info">
+                  No event distribution data available.
+                </Alert>
+              )}
+            </Box>
+          </Collapse>
         </CardContent>
       </Card>
 
