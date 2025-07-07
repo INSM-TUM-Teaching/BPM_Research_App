@@ -25,6 +25,7 @@ import ErrorIcon from '@mui/icons-material/Error';
 import StarIcon from '@mui/icons-material/Star';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import ResourceModelLoadingPage from "./ResourceModelLoading";
 
 
 interface BpmnResult {
@@ -43,8 +44,6 @@ const BestBpmns: React.FC = () => {
   const [bpmnViewers, setBpmnViewers] = useState<Map<number, any>>(new Map());
   const [bpmnLoading, setBpmnLoading] = useState<Set<number>>(new Set());
   const [bpmnErrors, setBpmnErrors] = useState<Map<number, string>>(new Map());
-  const [isPipelineRunning, setIsPipelineRunning] = useState(false);
-  const [pipelineCompleted, setPipelineCompleted] = useState(false);
   const [notification, setNotification] = useState<{
     open: boolean;
     message: string;
@@ -256,7 +255,6 @@ const BestBpmns: React.FC = () => {
 
   const handleSelectBpmn = async (path: string) => {
     try {
-      setIsPipelineRunning(true); // Show loading UI
       const res = await fetch("http://localhost:8000/select-model/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -270,48 +268,13 @@ const BestBpmns: React.FC = () => {
         throw new Error(`Server error: ${res.status} ${res.statusText} - ${errorText}`);
       }
       
-      const pollCompletion = async () => {
-        const maxAttempts = 60;
-        let attempt = 0;
-
-        while (attempt < maxAttempts) {
-          const response = await fetch("http://localhost:8000/pipeline/status");
-          const data = await response.json();
-
-          if (data?.completed) {
-            return true;
-          }
-
-          await new Promise(resolve => setTimeout(resolve, 3000)); // wait 3s
-          attempt++;
-        }
-
-        return false;
-      };
-      
-      const result = await res.json();
-      
       // Show success notification
       setNotification({
         open: true,
-        message: '✅ Model selected successfully! Redirecting to homepage...',
+        message: '✅ Model selected successfully! Redirecting to results page',
         severity: 'success'
       });
-
-      const completed = await pollCompletion(); 
-      if (completed) {
-        setPipelineCompleted(true); // ✅ Pipeline completed successfully
-        requestAnimationFrame(() => {
-          setTimeout(() => {
-            setPipelineCompleted(false);
-            setIsPipelineRunning(false);
-            navigate("/"); // Redirect to homepage after 3 seconds
-          }, 3000); // 3 seconds delay before redirect
-        });
-      
-      } else {
-        throw new Error("Pipeline did not complete in time.");
-      }
+      navigate("/resource-model-loading");
 
     } catch (err) {
       // Show error notification
@@ -320,7 +283,8 @@ const BestBpmns: React.FC = () => {
         message: `❌ Failed to select model: ${err instanceof Error ? err.message : String(err)}`,
         severity: 'error'
       });
-    } 
+    } finally {
+    }
   };
 
   const handleCloseNotification = () => {
@@ -441,16 +405,6 @@ const BestBpmns: React.FC = () => {
 
           Try Again
         </Button>
-      </Box>
-    );
-  }
-  if (isPipelineRunning) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
-        <CircularProgress size={60} />
-        <Typography variant="h5" sx={{ ml: 3 }}>
-          {pipelineCompleted ? '✅ Successfully completed!' : 'Running pipeline... Please wait.'}
-        </Typography>
       </Box>
     );
   }

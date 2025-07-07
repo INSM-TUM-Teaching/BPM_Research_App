@@ -8,13 +8,17 @@ from typing import Optional, List, Dict
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Body, Response
 from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
 from pydantic import BaseModel
 import csv
 from io import StringIO
 from typing import List, Dict, Any
 import shutil
 import traceback
+import zipfile
+import tempfile
+from datetime import datetime
+import glob
 
 # Prosimos CSV hjas multiple sections so parsing to structured JSON object
 def parse_prosimos_stats(csv_content: str) -> Dict[str, Any]:
@@ -136,82 +140,45 @@ def reset_top_3_results():
 # New endpoint: Serve existing output_ prefixed BPMN file directly
 @app.get("/api/layout-bpmn/{file_path:path}")
 def serve_layout_bpmn(file_path: str, response: Response):
-    import datetime
     from pathlib import Path
     from fastapi import Response
-    from urllib.parse import quote
-    
-    print(f"[DEBUG] /api/layout-bpmn/ endpoint called with: {file_path}")
+    from urllib.parse import quote, unquote
     
     try:
         # Decode URL-encoded path
-        from urllib.parse import unquote
         decoded_path = unquote(file_path)
-        
-        # Create log file in the same directory as the input file
-        input_path = Path(decoded_path)
-        log_file = input_path.parent / "server_layout_bpmn.log"
-        
-        def log_message(message):
-            timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            with open(log_file, 'a', encoding='utf-8') as f:
-                f.write(f"[{timestamp}] {message}\n")
-            print(message)  # Keep print as well
-        
-        log_message(f"=== LAYOUT BPMN REQUEST ===")
-        log_message(f"Original file_path: {file_path}")
-        log_message(f"Decoded path: {decoded_path}")
         
         # Create the output file path by adding output_ prefix to the filename
         original_path = Path(decoded_path)
         output_filename = f"output_{original_path.name}"
         output_path = original_path.parent / output_filename
         
-        log_message(f"Looking for output file: {output_path}")
-        log_message(f"Output file exists: {output_path.exists()}")
-        
         if not output_path.exists():
-            log_message(f"Output file not found: {output_path}")
-            log_message("Attempting to create auto layout from original file...")
-            
             # If output file doesn't exist, create it using auto layout
             try:
                 # Import auto layout function only when needed
                 create_layout_bpmn = import_auto_bpmn_layout()
                 layout_file = create_layout_bpmn(decoded_path)
-                log_message(f"Auto layout created: {layout_file}")
                 
                 # Update output_path to the newly created file
                 output_path = Path(layout_file)
                 
                 if not output_path.exists():
-                    log_message(f"ERROR: Auto layout failed to create file: {layout_file}")
                     raise FileNotFoundError(f"Could not create or find output BPMN file: {output_path}")
                     
             except Exception as auto_error:
-                log_message(f"ERROR: Auto layout creation failed: {str(auto_error)}")
                 raise FileNotFoundError(f"Output BPMN file not found and auto creation failed: {str(auto_error)}")
         
-        log_message(f"Output file size: {output_path.stat().st_size} bytes")
-        
         # Serve the output file directly
-        log_message(f"Reading output file from: {output_path}")
         with open(output_path, 'r', encoding='utf-8') as f:
             content = f.read()
-            
-        log_message(f"Successfully read output file: {len(content)} characters")
         
-        # Debug: Check if content contains layout information
+        # Check if content contains layout information
         has_layout = 'bpmndi:BPMNDiagram' in content or 'bpmndi:BPMNPlane' in content
-        log_message(f"Content has layout information: {has_layout}")
-        log_message(f"Content preview (first 300 chars): {content[:300]}")
-        
-        log_message("=== LAYOUT BPMN SUCCESS ===")
         
         # Set response URL to the actual output file path that was served
         output_file_encoded = quote(str(output_path).replace('\\', '/'))
         actual_response_url = f"/api/layout-bpmn/{output_file_encoded}"
-        log_message(f"Setting response URL to output file: {actual_response_url}")
         
         # Update the response headers to show the correct file being served
         response.headers["X-Served-File"] = str(output_path)
@@ -227,14 +194,8 @@ def serve_layout_bpmn(file_path: str, response: Response):
         }
         
     except FileNotFoundError as e:
-        if 'log_message' in locals():
-            log_message(f"File not found error: {str(e)}")
-        print(f"File not found error: {str(e)}")
         raise HTTPException(status_code=404, detail=f"Layout BPMN file not found: {str(e)}")
     except Exception as e:
-        if 'log_message' in locals():
-            log_message(f"Error serving layout BPMN: {str(e)}")
-        print(f"Error serving layout BPMN: {str(e)}")
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Failed to read layout BPMN file: {str(e)}")
@@ -242,74 +203,33 @@ def serve_layout_bpmn(file_path: str, response: Response):
 # New endpoint: Serve BPMN with auto layout
 @app.get("/api/bpmn/{file_path:path}")
 def serve_bpmn_with_layout(file_path: str):
-    import datetime
     from pathlib import Path
+    from urllib.parse import unquote
     
     try:
         # Decode URL-encoded path
-        from urllib.parse import unquote
         decoded_path = unquote(file_path)
         
-        # Create log file in the same directory as the input file
-        input_path = Path(decoded_path)
-        log_file = input_path.parent / "server_bpmn.log"
-        
-        def log_message(message):
-            timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            with open(log_file, 'a', encoding='utf-8') as f:
-                f.write(f"[{timestamp}] {message}\n")
-            print(message)  # Keep print as well
-        
-        log_message(f"=== BPMN AUTO LAYOUT REQUEST ===")
-        log_message(f"Original file_path: {file_path}")
-        log_message(f"Decoded path: {decoded_path}")
-        log_message(f"File exists: {os.path.exists(decoded_path)}")
-        
         if not os.path.exists(decoded_path):
-            log_message(f"ERROR: Source file not found: {decoded_path}")
             raise FileNotFoundError(f"Source BPMN file not found: {decoded_path}")
         
-        log_message(f"Source file size: {os.path.getsize(decoded_path)} bytes")
-        
         # Create auto layout - this creates output_filename.bpmn in the same directory
-        log_message("Calling create_layout_bpmn...")
         # Import auto layout function only when needed
         create_layout_bpmn = import_auto_bpmn_layout()
         layout_file = create_layout_bpmn(decoded_path)
         
-        log_message(f"Layout function returned: {layout_file}")
-        log_message(f"Layout file exists: {os.path.exists(layout_file)}")
-        
         if not os.path.exists(layout_file):
-            log_message(f"ERROR: Layout file was not created: {layout_file}")
             raise FileNotFoundError(f"Layout file was not created: {layout_file}")
         
-        log_message(f"Layout file size: {os.path.getsize(layout_file)} bytes")
-        
         # Serve the layout file
-        log_message(f"Reading layout file from: {layout_file}")
         with open(layout_file, 'r', encoding='utf-8') as f:
             content = f.read()
-            
-        log_message(f"Successfully read layout file: {len(content)} characters")
         
-        # Debug: Check if content contains layout information
-        has_layout = 'bpmndi:BPMNDiagram' in content or 'bpmndi:BPMNPlane' in content
-        log_message(f"Content has layout information: {has_layout}")
-        log_message(f"Content preview (first 300 chars): {content[:300]}")
-        
-        log_message("=== BPMN AUTO LAYOUT SUCCESS ===")
         return {"bpmn_xml": content}
         
     except FileNotFoundError as e:
-        if 'log_message' in locals():
-            log_message(f"File not found error: {str(e)}")
-        print(f"File not found error: {str(e)}")
         raise HTTPException(status_code=404, detail=f"BPMN file not found: {str(e)}")
     except Exception as e:
-        if 'log_message' in locals():
-            log_message(f"Error serving BPMN with layout: {str(e)}")
-        print(f"Error serving BPMN with layout: {str(e)}")
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Failed to process BPMN file: {str(e)}")
@@ -910,6 +830,74 @@ def mark_pipeline_completed():
 def get_pipeline_status():
     return {"completed": pipeline_state["completed"]}
 
+# --- download simulation results ---
+@app.get("/download-results/")
+def download_simulation_results():
+    """
+    Download the simulation results files from the current iteration's best_result folder.
+    Creates a ZIP file containing prosimos_stats.csv, prosimos_log.csv, and any filtered event log JSON files.
+    """
+    global final_bpmn_model_path
+    
+    if final_bpmn_model_path is None:
+        raise HTTPException(status_code=404, detail="No simulation results available for download.")
+    
+    try:
+        # Extract the best_result directory from the BPMN path
+        bpmn_path = Path(final_bpmn_model_path)
+        best_result_dir = bpmn_path.parent
+        
+        # Verify this is a best_result directory
+        if best_result_dir.name != "best_result":
+            raise HTTPException(status_code=500, detail="Invalid best_result directory structure.")
+        
+        # Define the files we want to include
+        files_to_download = []
+        
+        # 1. prosimos_stats.csv (renamed from prosimos_stat)
+        prosimos_stats_file = best_result_dir / "prosimos_stats.csv"
+        if prosimos_stats_file.exists():
+            files_to_download.append(("prosimos_stat", prosimos_stats_file))
+        
+        # 2. prosimos_log.csv (this should be the filtered event log CSV)
+        prosimos_log_file = best_result_dir / "prosimos_log.csv"
+        if prosimos_log_file.exists():
+            # Generate timestamp-based filename similar to the format requested
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            csv_name = f"output_filtered_event_log_{timestamp}.csv"
+            files_to_download.append((csv_name, prosimos_log_file))
+        
+        # 3. Look for JSON log files or simulation parameters
+        simulation_json_file = best_result_dir / f"{bpmn_path.stem}.json"
+        if simulation_json_file.exists():
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            json_name = f"filtered_event_log_{timestamp}.json"
+            files_to_download.append((json_name, simulation_json_file))
+        
+        # If no files found, return error
+        if not files_to_download:
+            raise HTTPException(status_code=404, detail="No simulation result files found in best_result directory.")
+        
+        # Create a temporary ZIP file
+        temp_dir = tempfile.mkdtemp()
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        zip_filename = f"simulation_results_{timestamp}.zip"
+        zip_path = Path(temp_dir) / zip_filename
+        
+        with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+            for archive_name, file_path in files_to_download:
+                zipf.write(file_path, archive_name)
+        
+        # Return the ZIP file
+        return FileResponse(
+            path=str(zip_path),
+            filename=zip_filename,
+            media_type='application/zip',
+            headers={"Content-Disposition": f"attachment; filename={zip_filename}"}
+        )
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error creating download package: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn

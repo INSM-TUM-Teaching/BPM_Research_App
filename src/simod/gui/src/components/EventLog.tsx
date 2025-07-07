@@ -16,6 +16,8 @@ import CategoryIcon from '@mui/icons-material/Category';
 import TuneIcon from '@mui/icons-material/Tune';
 import InfoIcon from '@mui/icons-material/Info';
 import { useNavigate } from "react-router-dom";
+import { all } from "axios";
+import { createColumnMapping, validateColumnMapping, ColumnMapping } from '../utils/columnMapping';
 //////##/////////////
 
 const EventLog: React.FC = () => {
@@ -23,6 +25,8 @@ const EventLog: React.FC = () => {
   const [allEventLogs, setAllEventLogs] = useState<any[]>([]);
   const [headers, setHeaders] = useState<string[]>([]);
   const [dateRange, setDateRange] = useState<[Date | null, Date | null]>([null, null]);
+  const [columnMapping, setColumnMapping] = useState<ColumnMapping | null>(null);
+  const [columnMappingError, setColumnMappingError] = useState<string[]>([]);
   // Add min/max date states
   const [minLogDate, setMinLogDate] = useState<Date | null>(null);
   const [maxLogDate, setMaxLogDate] = useState<Date | null>(null);
@@ -66,7 +70,7 @@ const EventLog: React.FC = () => {
     // First check if API (to get complete data) exists
     let completeEndpoint = false;
     try {
-      const testResponse = await fetch("http://localhost:8000/api/event-log/full", { method: 'HEAD' });
+      const testResponse = await fetch("http://localhost:8000/api/event-log/full", { method: 'GET' });
       completeEndpoint = testResponse.ok;
     } catch {
       completeEndpoint = false;
@@ -86,6 +90,7 @@ const EventLog: React.FC = () => {
       }
       
       setAllEventLogs(data.data || []);
+      console.log(allEventLogs, "records loaded successfully.");
       
       // Determine columns
       if (data.data && data.data.length > 0) {
@@ -102,7 +107,8 @@ const EventLog: React.FC = () => {
       console.log("Resetting pipeline state...");
       await fetch("http://localhost:8000/pipeline/reset", {
         method: "POST"
-      });
+      }
+    );
       console.log("Fetching all data page by page...");
       // Fetch first page and learn total row count
       const firstPageResponse = await fetch("http://localhost:8000/api/event-log?limit=1000&offset=0");
@@ -172,19 +178,46 @@ const EventLog: React.FC = () => {
 };
 
   // Helper function to extract Activity and Case ID lists from dataset
-  const extractMetadata = (logs: any[]) => {
+  const extractMetadata = useCallback((logs: any[]) => {
+    if (logs.length === 0) return;
+
+    const columns = Object.keys(logs[0]);
+    const mapping = createColumnMapping(columns);
+    const validation = validateColumnMapping(mapping);
+    
+    if (!validation.isValid) {
+      setColumnMappingError(validation.errors);
+      console.error('Column mapping validation failed:', validation.errors);
+      return;
+    }
+    
+    setColumnMapping(mapping);
+    setColumnMappingError([]);
+
+    // Use the mapped column names
+    const caseIdColumn = mapping.caseId!; // We know it exists due to validation
+    const activityColumn = mapping.activity!;
+    
+    console.log('Column mapping successful:', {
+      originalCaseIdColumn: caseIdColumn,
+      originalActivityColumn: activityColumn,
+      timeColumns: mapping.timeColumns,
+      attributeColumns: mapping.attributeColumns
+    });
+
     const activitiesSet = new Set<string>();
     const casesSet = new Set<string>();
     let minDate: Date | null = null;
     let maxDate: Date | null = null;
     
     logs.forEach((row: any) => {
-      if (row.activity) activitiesSet.add(row.activity);
-      if (row.case_id !== undefined && row.case_id !== null) casesSet.add(row.case_id);
+      if (row[activityColumn]) activitiesSet.add(String(row[activityColumn]));
+      if (row[caseIdColumn] !== undefined && row[caseIdColumn] !== null) {
+        casesSet.add(String(row[caseIdColumn]));
+      }
       
-      // Extract dates - check all potential date fields
-      const dateFields = ['start_time', 'end_time', 'enabled_time'];
-      dateFields.forEach(field => {
+      // Extract dates - check all potential date fields using mapped time columns
+      mapping.timeColumns.forEach(field => {
         if (row[field]) {
           try {
             const date = parseISO(row[field]);
@@ -213,16 +246,19 @@ const EventLog: React.FC = () => {
       setDateRange([minDate, maxDate]);
     }
     
-    // Calculate activity usage
+    // Calculate activity usage using mapped column names
     const activityUsage: { [activity: string]: number } = {};
     const casesWithActivity: { [activity: string]: Set<string> } = {};
     
     logs.forEach((row: any) => {
-      if (row.activity && row.case_id !== undefined && row.case_id !== null) {
-        if (!casesWithActivity[row.activity]) {
-          casesWithActivity[row.activity] = new Set();
+      const activity = String(row[activityColumn]);
+      const caseId = String(row[caseIdColumn]);
+      
+      if (activity && caseId !== undefined && caseId !== null) {
+        if (!casesWithActivity[activity]) {
+          casesWithActivity[activity] = new Set();
         }
-        casesWithActivity[row.activity].add(row.case_id);
+        casesWithActivity[activity].add(caseId);
       }
     });
     
@@ -233,21 +269,9 @@ const EventLog: React.FC = () => {
     
     setActivityUsage(activityUsage);
     
-    // Extract attribute columns (columns that come after timestamp columns)
-    if (logs.length > 0) {
-      const allColumns = Object.keys(logs[0]);
-      const timestampColumns = ['start_time', 'end_time', 'enabled_time'];
-      const systemColumns = ['case_id', 'activity', 'resource', 'role']; // Core system columns
-      
-      // Find attribute columns: columns that are not timestamp columns or system columns
-      const attributeCols = allColumns.filter(col => 
-        !timestampColumns.includes(col) && 
-        !systemColumns.includes(col)
-      );
-      
-      setAttributeColumns(attributeCols);
-    }
-  };
+    // Use mapped attribute columns
+    setAttributeColumns(mapping.attributeColumns);
+  }, [dateRange]);
 
   // State for activity usage data
   const [activityUsage, setActivityUsage] = useState<{ [activity: string]: number }>({});
@@ -283,6 +307,13 @@ const EventLog: React.FC = () => {
 
   // Move the cases calculation to a separate useMemo
   const casesWithExcludedActivities = useMemo(() => {
+    if (!columnMapping) return new Set<any>();
+    
+    const activityColumn = columnMapping.activity;
+    const caseIdColumn = columnMapping.caseId;
+    
+    if (!activityColumn || !caseIdColumn) return new Set<any>();
+    
     // Always use case-level filtering logic for activities
     if (allActivities.length > selectedActivities.length) {
       const excludedActivities = allActivities.filter(activity => !selectedActivities.includes(activity));
@@ -290,11 +321,14 @@ const EventLog: React.FC = () => {
       
       // Find all cases that contain any excluded activities
       allEventLogs.forEach(log => {
-        if (log.activity && 
-            excludedActivities.includes(log.activity) && 
-            log.case_id !== undefined && log.case_id !== null && 
-            !casesSet.has(log.case_id)) {
-          casesSet.add(log.case_id);
+        const activity = String(log[activityColumn]);
+        const caseId = String(log[caseIdColumn]);
+        
+        if (activity && 
+            excludedActivities.includes(activity) && 
+            caseId !== undefined && caseId !== null && 
+            !casesSet.has(caseId)) {
+          casesSet.add(caseId);
         }
       });
       
@@ -302,7 +336,7 @@ const EventLog: React.FC = () => {
     }
     
     return new Set<any>();
-  }, [allEventLogs, selectedActivities, allActivities]);
+  }, [allEventLogs, selectedActivities, allActivities, columnMapping]);
 
   // Helper function to check if a case passes attribute filters
   const passesAttributeFilters = useCallback((log: any) => {
@@ -331,37 +365,48 @@ const EventLog: React.FC = () => {
 
   // Calculate filtered logs by applying date, activity, and status filters
   const filteredLogs = useMemo(() => {
+    if (!columnMapping) return allEventLogs;
+    
+    const caseIdColumn = columnMapping.caseId;
+    const timeColumns = columnMapping.timeColumns;
     const [start, end] = dateRange;
     
+    if (!caseIdColumn) return allEventLogs;
+    
     return allEventLogs.filter((log) => {
-      // Case check
+      // Case check using mapped column
+      const caseId = String(log[caseIdColumn]);
       const inCase = selectedCaseIds.length === 0 || 
-                    (log.case_id !== undefined && log.case_id !== null && 
-                     selectedCaseIds.includes(log.case_id));
+                    (caseId !== undefined && caseId !== null && 
+                     selectedCaseIds.includes(caseId));
       
       // For activity filtering, always exclude cases that have excluded activities
-      const notInExcludedCases = log.case_id === undefined || log.case_id === null || 
-                                !casesWithExcludedActivities.has(log.case_id);
+      const notInExcludedCases = caseId === undefined || caseId === null || 
+                                !casesWithExcludedActivities.has(caseId);
       
       // Attribute filtering
       const passesAttributes = passesAttributeFilters(log);
       
-      // Date check
+      // Date check using mapped time columns
       let inDate = true;
-      if (start && end && log.start_time) {
-        try {
-          const logDate = parseISO(log.start_time);
-          inDate = logDate.getTime() >= start.getTime() && logDate.getTime() <= end.getTime();
-        } catch (e) {
-          // Date conversion error, skip filtering
-          console.warn("Date conversion error:", log.start_time);
+      if (start && end && timeColumns.length > 0) {
+        // Check any time column (prioritize start_time if exists)
+        const startTimeCol = timeColumns.find(col => col.toLowerCase().includes('start')) || timeColumns[0];
+        if (log[startTimeCol]) {
+          try {
+            const logDate = parseISO(log[startTimeCol]);
+            inDate = logDate.getTime() >= start.getTime() && logDate.getTime() <= end.getTime();
+          } catch (e) {
+            // Date conversion error, skip filtering
+            console.warn("Date conversion error:", log[startTimeCol]);
+          }
         }
       }
       
       // Always use case-level filtering for activities and attributes
       return inCase && inDate && notInExcludedCases && passesAttributes;
     });
-  }, [allEventLogs, dateRange, selectedActivities, selectedCaseIds, casesWithExcludedActivities, attributeFilters]);
+  }, [allEventLogs, dateRange, selectedActivities, selectedCaseIds, casesWithExcludedActivities, attributeFilters, columnMapping]);
 
   // Paginated data
   const pagedLogs = useMemo(() => {
@@ -599,7 +644,12 @@ const EventLog: React.FC = () => {
 
   // Calculate filter impact - tracking records removed at each step
   useEffect(() => {
-    if (allEventLogs.length === 0) return;
+    if (allEventLogs.length === 0 || !columnMapping) return;
+
+    const caseIdColumn = columnMapping.caseId;
+    const timeColumns = columnMapping.timeColumns;
+    
+    if (!caseIdColumn) return;
 
     let currentCount = allEventLogs.length;
     let dateRemoved = 0;
@@ -607,15 +657,16 @@ const EventLog: React.FC = () => {
     let attributeRemoved = 0;
     let caseRemoved = 0;
 
-    // Step 1: Apply date filter
+    // Step 1: Apply date filter using mapped time columns
     const [start, end] = dateRange;
     let afterDateFilter = allEventLogs;
     
-    if (start && end) {
+    if (start && end && timeColumns.length > 0) {
+      const startTimeCol = timeColumns.find(col => col.toLowerCase().includes('start')) || timeColumns[0];
       afterDateFilter = allEventLogs.filter(log => {
-        if (!log.start_time) return true;
+        if (!log[startTimeCol]) return true;
         try {
-          const logDate = parseISO(log.start_time);
+          const logDate = parseISO(log[startTimeCol]);
           return logDate.getTime() >= start.getTime() && logDate.getTime() <= end.getTime();
         } catch (e) {
           return true;
@@ -641,24 +692,26 @@ const EventLog: React.FC = () => {
       currentCount = afterAttributeFilter.length;
     }
 
-    // Step 3: Apply activity filter (case-level)
+    // Step 3: Apply activity filter (case-level) using mapped column
     let afterActivityFilter = afterAttributeFilter;
     if (selectedActivities.length < allActivities.length) {
       afterActivityFilter = afterAttributeFilter.filter(log => {
-        return log.case_id === undefined || log.case_id === null || 
-               !casesWithExcludedActivities.has(log.case_id);
+        const caseId = String(log[caseIdColumn]);
+        return caseId === undefined || caseId === null || 
+               !casesWithExcludedActivities.has(caseId);
       });
       activityRemoved = currentCount - afterActivityFilter.length;
       currentCount = afterActivityFilter.length;
     }
 
-    // Step 4: Apply case filter
+    // Step 4: Apply case filter using mapped column
     let afterCaseFilter = afterActivityFilter;
     if (selectedCaseIds.length < allCaseIds.length) {
-      afterCaseFilter = afterActivityFilter.filter(log => 
-        log.case_id === undefined || log.case_id === null || 
-        selectedCaseIds.includes(log.case_id)
-      );
+      afterCaseFilter = afterActivityFilter.filter(log => {
+        const caseId = String(log[caseIdColumn]);
+        return caseId === undefined || caseId === null || 
+               selectedCaseIds.includes(caseId);
+      });
       caseRemoved = currentCount - afterCaseFilter.length;
     }
 
@@ -668,7 +721,7 @@ const EventLog: React.FC = () => {
     setAttributeRemovedCount(attributeRemoved);
     setCaseRemovedCount(caseRemoved);
   }, [allEventLogs, dateRange, selectedActivities, selectedCaseIds, 
-      allActivities, allCaseIds, casesWithExcludedActivities, attributeFilters, passesAttributeFilters]);
+      allActivities, allCaseIds, casesWithExcludedActivities, attributeFilters, passesAttributeFilters, columnMapping]);
 
   return (
     <div style={{ height: "100vh", display: "flex", flexDirection: "column", padding: "16px" }}>
@@ -763,39 +816,38 @@ const EventLog: React.FC = () => {
             )}
           </Box>
 
-          {/* Attribute Filters button with loading indicator */}
-          {attributeColumns.length > 0 && (
-            <Box position="relative" display="inline-block" sx={{ mb: 1 }}>
-              <Button
-                variant="outlined"
-                onClick={(e) => setAttributeAnchorEl(e.currentTarget)}
-                startIcon={<TuneIcon />}
-              >
-                Attributes {attributeFilters.some(f => 
+          {/* Attribute Filters button with loading indicator - always show */}
+          <Box position="relative" display="inline-block" sx={{ mb: 1 }}>
+            <Button
+              variant="outlined"
+              onClick={(e) => setAttributeAnchorEl(e.currentTarget)}
+              startIcon={<TuneIcon />}
+            >
+              Attributes {attributeColumns.length === 0 ? ' (none detected)' : 
+                attributeFilters.some(f => 
                   f.type === 'categorical' ? 
                     (f.selectedValues?.length || 0) < (f.values?.length || 0) :
                     (f.selectedRange?.[0] !== f.min || f.selectedRange?.[1] !== f.max)
                 ) ? ' (filtered)' : ''}
-              </Button>
-              {filterLoading && attributeAnchorEl === null && (
-                <Box 
-                  position="absolute" 
-                  top="0" 
-                  left="0" 
-                  width="100%" 
-                  height="100%" 
-                  display="flex" 
-                  alignItems="center" 
-                  justifyContent="center"
-                  bgcolor="rgba(255,255,255,0.7)"
-                  borderRadius={1}
-                  zIndex={5}
-                >
-                  <CircularProgress size={20} />
-                </Box>
-              )}
-            </Box>
-          )}
+            </Button>
+            {filterLoading && attributeAnchorEl === null && (
+              <Box 
+                position="absolute" 
+                top="0" 
+                left="0" 
+                width="100%" 
+                height="100%" 
+                display="flex" 
+                alignItems="center" 
+                justifyContent="center"
+                bgcolor="rgba(255,255,255,0.7)"
+                borderRadius={1}
+                zIndex={5}
+              >
+                <CircularProgress size={20} />
+              </Box>
+            )}
+          </Box>
         </Stack>
         
         {/* Continue button - right aligned */}
@@ -815,6 +867,23 @@ const EventLog: React.FC = () => {
           </span>
         </Tooltip>
       </Stack>
+
+      {/* Column mapping error handling */}
+      {columnMappingError.length > 0 && (
+        <Box sx={{ mb: 2, p: 2, bgcolor: '#ffebee', borderRadius: 1, border: '1px solid #f44336' }}>
+          <Typography variant="h6" color="error" gutterBottom>
+            Column Mapping Errors:
+          </Typography>
+          {columnMappingError.map((error, index) => (
+            <Typography key={index} variant="body2" color="error">
+              • {error}
+            </Typography>
+          ))}
+          <Typography variant="body2" sx={{ mt: 1 }}>
+            Please check your event log file format and column names.
+          </Typography>
+        </Box>
+      )}
 
       {/* Filtering summary with detailed tooltip */}
       {allEventLogs.length > 0 && (
@@ -1090,6 +1159,7 @@ const EventLog: React.FC = () => {
         onApply={handleApplyActivities}
         activityUsageData={activityUsage}
         allCaseIds={allCaseIds}
+        caseIdColumnName={columnMapping?.caseId || "case_id"}
       />
 
       <CasesPopover

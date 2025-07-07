@@ -197,7 +197,34 @@ const AttributePopover: React.FC<Props> = ({
 
         {/* Attribute Filters */}
         <Box sx={{ maxHeight: 400, overflow: 'auto' }}>
-          {filteredAttributes.length > 0 ? (
+          {attributeColumns.length === 0 ? (
+            /* No attributes detected message */
+            <Box sx={{ 
+              textAlign: 'center', 
+              py: 4, 
+              px: 2, 
+              bgcolor: '#fff3e0', 
+              borderRadius: 1, 
+              border: '1px solid #ffcc02' 
+            }}>
+              <InfoIcon sx={{ fontSize: 48, color: '#ff9800', mb: 2 }} />
+              <Typography variant="h6" gutterBottom color="text.primary">
+                No Attributes Detected
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                No attribute columns were found in your event log after the timestamp columns.
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                <strong>Possible reasons:</strong>
+                <br />• Your event log format may not be compatible
+                <br />• No case-level attributes exist in the data
+              </Typography>
+              <Typography variant="caption" sx={{ mt: 2, display: 'block', fontStyle: 'italic' }}>
+                Attribute columns should come after timestamp columns (like start_time, end_time) 
+                and represent case-level properties (age, priority, department, etc.)
+              </Typography>
+            </Box>
+          ) : filteredAttributes.length > 0 ? (
             filteredAttributes.map((filter) => (
               <Accordion key={filter.column} defaultExpanded={filteredAttributes.length <= 3}>
                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -301,20 +328,32 @@ const AttributePopover: React.FC<Props> = ({
         
         {/* Action Buttons */}
         <Stack direction="row" justifyContent="space-between" spacing={1}>
-          <Box>
-            <Typography variant="caption" color="textSecondary">
-              {getActiveFiltersCount()} filter{getActiveFiltersCount() !== 1 ? 's' : ''} active
-            </Typography>
-          </Box>
-          <Stack direction="row" spacing={1}>
-            <Button onClick={handleReset} disabled={getActiveFiltersCount() === 0}>
-              Reset
-            </Button>
-            <Button onClick={onClose}>Cancel</Button>
-            <Button variant="contained" onClick={handleApply}>
-              Apply
-            </Button>
-          </Stack>
+          {attributeColumns.length === 0 ? (
+            /* No attributes - only show close button */
+            <Box sx={{ width: '100%', textAlign: 'center' }}>
+              <Button variant="outlined" onClick={onClose} sx={{ minWidth: 120 }}>
+                Close
+              </Button>
+            </Box>
+          ) : (
+            /* Normal attribute filtering buttons */
+            <>
+              <Box>
+                <Typography variant="caption" color="textSecondary">
+                  {getActiveFiltersCount()} filter{getActiveFiltersCount() !== 1 ? 's' : ''} active
+                </Typography>
+              </Box>
+              <Stack direction="row" spacing={1}>
+                <Button onClick={handleReset} disabled={getActiveFiltersCount() === 0}>
+                  Reset
+                </Button>
+                <Button onClick={onClose}>Cancel</Button>
+                <Button variant="contained" onClick={handleApply}>
+                  Apply
+                </Button>
+              </Stack>
+            </>
+          )}
         </Stack>
       </Paper>
     </Popover>
