@@ -390,7 +390,7 @@ const BestBpmns: React.FC = () => {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '70vh' }}>
         <CircularProgress />
-        <Typography variant="h6" sx={{ ml: 2 }}>Loading top 3 BPMN models...</Typography>
+        <Typography variant="h6" sx={{ ml: 2 }}>Loading 3 BPMN models...</Typography>
       </Box>
     );
   }
