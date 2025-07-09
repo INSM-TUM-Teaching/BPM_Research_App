@@ -412,12 +412,11 @@ const BestBpmns: React.FC = () => {
     <Box sx={{ p: 3 }}>
       <Typography variant="h4" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
         <StarIcon sx={{ mr: 1, color: '#FFD700' }} /> 
-        Top 3 BPMN Models
+        BPMN Models
       </Typography>
       
       <Typography variant="body1" color="text.secondary" paragraph>
-        The table below shows the top 3 BPMN models ranked by their loss value. Lower loss indicates a better model fit. 
-        Click "View BPMN" to display the auto-layouted diagram inline below each row.
+        The table below shows three BPMN models ranked by their loss value. Lower loss indicates a better model fit.
       </Typography>
       
       <Card sx={{ mb: 4 }}>
