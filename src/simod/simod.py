@@ -368,7 +368,7 @@ class Simod:
                 'poetry', 'run', 'prosimos', 'start-simulation',
                 '--bpmn_path', bpmn_path,
                 '--json_path', json_path,
-                '--total_cases', '5',
+                '--total_cases', '100',
                 '--log_out_path', log_out_path,
                 '--stat_out_path', stat_out_path
             ],

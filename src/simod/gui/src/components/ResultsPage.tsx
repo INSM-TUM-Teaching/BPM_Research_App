@@ -599,50 +599,6 @@ const ResultsPage: React.FC = () => {
         </Card>
       )}
 
-      {/* Metadata Information Cards */}
-      <Box sx={{ 
-        display: 'flex', 
-        gap: 3, 
-        mb: 4,
-        flexWrap: 'wrap'
-      }}>
-        <Box sx={{ flex: '1 1 300px', minWidth: 300 }}>
-          <Card elevation={3}>
-            <CardContent sx={{ textAlign: 'center' }}>
-              <ScheduleIcon sx={{ fontSize: 40, color: 'primary.main', mb: 1 }} />
-              <Typography variant="h6" gutterBottom>Start Time</Typography>
-              <Typography variant="body1" color="text.secondary">
-                {formatDateTime(parsed_stats.metadata.started_at)}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Box>
-        
-        <Box sx={{ flex: '1 1 300px', minWidth: 300 }}>
-          <Card elevation={3}>
-            <CardContent sx={{ textAlign: 'center' }}>
-              <CheckCircleIcon sx={{ fontSize: 40, color: 'success.main', mb: 1 }} />
-              <Typography variant="h6" gutterBottom>Completion Time</Typography>
-              <Typography variant="body1" color="text.secondary">
-                {formatDateTime(parsed_stats.metadata.completed_at)}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Box>
-        
-        <Box sx={{ flex: '1 1 300px', minWidth: 300 }}>
-          <Card elevation={3}>
-            <CardContent sx={{ textAlign: 'center' }}>
-              <TimelineIcon sx={{ fontSize: 40, color: 'info.main', mb: 1 }} />
-              <Typography variant="h6" gutterBottom>Total Duration</Typography>
-              <Typography variant="body1" color="text.secondary">
-                {formatDuration(parsed_stats.metadata.started_at, parsed_stats.metadata.completed_at)}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Box>
-      </Box>
-
       {/* Overall Scenario Statistics */}
       <Card elevation={4} sx={{ mb: 4 }}>
         <CardContent>
