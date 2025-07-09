@@ -16,7 +16,7 @@ const LoadingScreen = () => {
         // Step 1: DELETE to clear previous results
         const response = await axios.delete<{ message: string }>("http://localhost:8000/top-3-results/");
         if (response.data.message === "Top-3 results have been reset.") {
-          setMessage("Generating Candidate BPMNs and Extracting Best Three Results");
+          setMessage("Generating Candidate BPMNs and Extracting Three Results");
 
           // Step 2: Start polling
           const interval = setInterval(async () => {
@@ -28,7 +28,7 @@ const LoadingScreen = () => {
 
                 // Update loading to false to show success message and icon
                 setLoading(false);
-                setMessage("Best three results extracted successfully!");
+                setMessage("Three results extracted successfully!");
 
                 // Step 3: Redirect after short delay
                 setTimeout(() => {
