@@ -617,14 +617,14 @@ const ResultsPage: React.FC = () => {
             gap: 3,
             mb: 3
           }}>
-            {parsed_stats["Overall Scenario Statistics"].rows.map((row, index) => {
+            {parsed_stats["Overall Scenario Statistics"].rows.filter(row => row.KPI !== 'idle_cycle_time')
+            .map((row, index) => {
               const getKPIIcon = (kpi: string) => {
                 switch(kpi) {
                   case 'cycle_time': return <TimelineIcon sx={{ fontSize: 24, color: 'primary.main' }} />;
                   case 'processing_time': return <AssignmentIcon sx={{ fontSize: 24, color: 'success.main' }} />;
                   case 'waiting_time': return <ScheduleIcon sx={{ fontSize: 24, color: 'warning.main' }} />;
                   case 'idle_time': return <PersonIcon sx={{ fontSize: 24, color: 'info.main' }} />;
-                  case 'idle_cycle_time': return <TimelineIcon sx={{ fontSize: 24, color: 'secondary.main' }} />;
                   case 'idle_processing_time': return <AssignmentIcon sx={{ fontSize: 24, color: 'error.main' }} />;
                   default: return <AnalyticsIcon sx={{ fontSize: 24, color: 'grey.600' }} />;
                 }
@@ -636,7 +636,6 @@ const ResultsPage: React.FC = () => {
                   case 'processing_time': return 'success.main';
                   case 'waiting_time': return 'warning.main';
                   case 'idle_time': return 'info.main';
-                  case 'idle_cycle_time': return 'secondary.main';
                   case 'idle_processing_time': return 'error.main';
                   default: return 'grey.600';
                 }
