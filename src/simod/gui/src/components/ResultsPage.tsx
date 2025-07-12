@@ -846,7 +846,7 @@ const ResultsPage: React.FC = () => {
                       </Typography>
                     </Box>
                     <Typography
-                      variant="h4"
+                      variant="h6"
                       sx={{
                         fontWeight: 'bold',
                         mb: 1,
