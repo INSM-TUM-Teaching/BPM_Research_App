@@ -128,12 +128,31 @@ const ResultsPage: React.FC = () => {
   const [eventDistributionExpanded, setEventDistributionExpanded] = useState(false);
   const [eventDistributionLoading, setEventDistributionLoading] = useState(false);
   const [eventDistributionError, setEventDistributionError] = useState<string | null>(null);
+  const [uploadedParams, setUploadedParams] = useState<any>(null);
+  const [uploadedParamsError, setUploadedParamsError] = useState<string | null>(null);
+
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchProsimosStats();
     fetchBpmnPath();
+    fetchUploadedParams();
   }, []);
+
+  const fetchUploadedParams = async () => {
+    try {
+      const response = await fetch("http://localhost:8000/api/upload-canonical-model/");
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      const data = await response.json();
+      if (data && data.control_flow) {
+        setUploadedParams(data.control_flow);
+      } else {
+        setUploadedParams(null);
+      }
+    } catch (err) {
+      setUploadedParamsError(err instanceof Error ? err.message : "Failed to fetch uploaded parameters");
+    }
+  };
 
   const fetchProsimosStats = async () => {
     try {
@@ -745,6 +764,103 @@ const ResultsPage: React.FC = () => {
               );
             })}
           </Box>
+        </CardContent>
+      </Card>
+
+      {/* Control Flow Parameters*/}
+      <Card elevation={4} sx={{ mb: 4 }}>
+        <CardContent>
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+            <AnalyticsIcon sx={{ fontSize: 30, color: 'primary.main', mr: 2 }} />
+            <Typography variant="h5" component="h2" sx={{ fontWeight: 'bold' }}>
+              Control Flow Parameters
+            </Typography>
+          </Box>
+          <Divider sx={{ mb: 3 }} />
+          {uploadedParamsError && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {uploadedParamsError}
+            </Alert>
+          )}
+          {!uploadedParams && !uploadedParamsError && (
+            <Typography color="text.secondary">No uploaded parameters available.</Typography>
+          )}
+          {uploadedParams && (
+            <Box sx={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+              gap: 3,
+              mb: 3
+            }}>
+              {[
+                {
+                  label: "Mining Algorithm",
+                  value: uploadedParams.mining_algorithm,
+                  color: "primary.main",
+                  icon: <AnalyticsIcon sx={{ fontSize: 24, color: "primary.main" }} />
+                },
+                {
+                  label: "Epsilon",
+                  value: uploadedParams.epsilon,
+                  color: "success.main",
+                  icon: <AssessmentIcon sx={{ fontSize: 24, color: "success.main" }} />
+                },
+                {
+                  label: "Eta",
+                  value: uploadedParams.eta,
+                  color: "info.main",
+                  icon: <TimelineIcon sx={{ fontSize: 24, color: "info.main" }} />
+                },
+                {
+                  label: "Prioritize Parallelism",
+                  value: uploadedParams.prioritize_parallelism,
+                  color: "warning.main",
+                  icon: <AssignmentIcon sx={{ fontSize: 24, color: "warning.main" }} />
+                },
+                {
+                  label: "Replace OR Joins",
+                  value: uploadedParams.replace_or_joins,
+                  color: "error.main",
+                  icon: <PersonIcon sx={{ fontSize: 24, color: "error.main" }} />
+                }
+              ].map((param, idx) => (
+                <Card key={idx} elevation={3} sx={{
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    elevation: 6,
+                    transform: 'translateY(-2px)'
+                  }
+                }}>
+                  <CardContent sx={{ p: 3 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                      {param.icon}
+                      <Typography
+                        variant="h6"
+                        sx={{
+                          fontWeight: 'bold',
+                          ml: 1,
+                          color: param.color
+                        }}
+                      >
+                        {param.label}
+                      </Typography>
+                    </Box>
+                    <Typography
+                      variant="h4"
+                      sx={{
+                        fontWeight: 'bold',
+                        mb: 1,
+                        color: 'text.primary',
+                        textAlign: 'center'
+                      }}
+                    >
+                      {param.value}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              ))}
+            </Box>
+          )}
         </CardContent>
       </Card>
 
