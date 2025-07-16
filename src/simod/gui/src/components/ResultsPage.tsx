@@ -201,6 +201,7 @@ const ResultsPage: React.FC = () => {
     gatewayProbabilities: false,
     resourceProfiles: false,
     arrivalCalendar: false,
+    resourceCalendars: false,
     eventDistribution: false,
     taskResourceDistribution: false,
     showAllTasks: false,
@@ -895,7 +896,94 @@ const ResultsPage: React.FC = () => {
                     </Card>
                   )}
 
-                  {/* Event Distribution */}
+                  {/* Resource Calendars */}
+                  {simulationParams.parameters.resource_calendars && simulationParams.parameters.resource_calendars.length > 0 && (
+                    <Card elevation={2}>
+                      <CardContent>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                          <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                            Resource Calendars ({simulationParams.parameters.resource_calendars.length})
+                          </Typography>
+                          <IconButton 
+                            onClick={() => toggleSection('resourceCalendars')}
+                            size="small"
+                          >
+                            {expandedSections.resourceCalendars ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                          </IconButton>
+                        </Box>
+                        <Collapse in={expandedSections.resourceCalendars}>
+                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            {simulationParams.parameters.resource_calendars.map((calendar, index) => (
+                              <Card key={index} elevation={1} sx={{ border: '1px solid #e0e0e0' }}>
+                                <CardContent sx={{ pb: 2 }}>
+                                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                                    <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                                      {calendar.name}
+                                    </Typography>
+                                    <Chip 
+                                      label={`${calendar.time_periods.length} periods`}
+                                      color="secondary"
+                                      variant="outlined"
+                                      size="small"
+                                    />
+                                  </Box>
+                                  
+                                  <Typography variant="caption" color="text.secondary" sx={{ 
+                                    display: 'block',
+                                    mb: 1,
+                                    fontFamily: 'monospace',
+                                    fontSize: '0.7rem'
+                                  }}>
+                                    ID: {calendar.id}
+                                  </Typography>
+                                  
+                                  <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid #f0f0f0' }}>
+                                    <Table size="small">
+                                      <TableHead>
+                                        <TableRow sx={{ backgroundColor: 'grey.50' }}>
+                                          <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem' }}>Day</TableCell>
+                                          <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem' }}>From</TableCell>
+                                          <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem' }}>To</TableCell>
+                                          <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem' }}>Duration</TableCell>
+                                        </TableRow>
+                                      </TableHead>
+                                      <TableBody>
+                                        {calendar.time_periods.map((period, periodIndex) => (
+                                          <TableRow key={periodIndex}>
+                                            <TableCell>
+                                              <Chip 
+                                                label={period.from} 
+                                                color="primary" 
+                                                variant="outlined" 
+                                                size="small"
+                                                sx={{ fontSize: '0.7rem' }}
+                                              />
+                                            </TableCell>
+                                            <TableCell sx={{ fontSize: '0.8rem' }}>{period.beginTime}</TableCell>
+                                            <TableCell sx={{ fontSize: '0.8rem' }}>{period.endTime}</TableCell>
+                                            <TableCell sx={{ fontSize: '0.8rem' }}>
+                                              {(() => {
+                                                const start = new Date(`2000-01-01T${period.beginTime}`);
+                                                const end = new Date(`2000-01-01T${period.endTime}`);
+                                                const diffHours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+                                                return `${diffHours}h`;
+                                              })()}
+                                            </TableCell>
+                                          </TableRow>
+                                        ))}
+                                      </TableBody>
+                                    </Table>
+                                  </TableContainer>
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </Box>
+                        </Collapse>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Event Distribution
                   {simulationParams.parameters.event_distribution && simulationParams.parameters.event_distribution.length > 0 && (
                     <Card elevation={2}>
                       <CardContent>
@@ -979,7 +1067,7 @@ const ResultsPage: React.FC = () => {
                         </Collapse>
                       </CardContent>
                     </Card>
-                  )}
+                  )} */}
 
                   {/* Task Resource Distribution */}
                   {simulationParams.parameters.task_resource_distribution && (
@@ -1043,28 +1131,8 @@ const ResultsPage: React.FC = () => {
                                   {task.resources.length} resource(s) configured
                                 </Typography>
                                 
-                                {/* Resource summary chips */}
-                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                                  {task.resources.slice(0, 3).map((resource, rIndex) => (
-                                    <Chip
-                                      key={rIndex}
-                                      label={resource.resource_id.split('-')[0]}
-                                      size="small"
-                                      color="info"
-                                      variant="outlined"
-                                      sx={{ fontSize: '0.7rem' }}
-                                    />
-                                  ))}
-                                  {task.resources.length > 3 && (
-                                    <Chip
-                                      label={`+${task.resources.length - 3} more`}
-                                      size="small"
-                                      color="default"
-                                      variant="outlined"
-                                      sx={{ fontSize: '0.7rem' }}
-                                    />
-                                  )}
-                                </Box>
+                               
+                                
                               </Paper>
                             ))}
                           </Box>
