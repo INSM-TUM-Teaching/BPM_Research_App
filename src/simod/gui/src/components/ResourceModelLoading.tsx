@@ -6,7 +6,7 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 const ResourceModelLoading = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState("Resource Model Optimization");
+  const [message, setMessage] = useState("Business Process Simulation is running...");
   const [dots, setDots] = useState('');
 
   // Animated dots effect

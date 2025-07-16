@@ -9,6 +9,17 @@ const LoadingScreen = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("Initializing...");
+  const [dots, setDots] = useState('');
+
+  // Animated dots effect
+  useEffect(() => {
+    if (loading) {
+      const interval = setInterval(() => {
+        setDots(prev => prev.length >= 3 ? '' : prev + '.');
+      }, 500);
+      return () => clearInterval(interval);
+    }
+  }, [loading]);
 
   useEffect(() => {
     const clearTop3Results = async () => { 
@@ -64,7 +75,7 @@ const LoadingScreen = () => {
         <>
           <CircularProgress size={60} sx={{ color: "#1976d2", mb: 4 }} />
           <Typography variant="h6" align="center" color="textPrimary">
-            {message}
+            {message}{dots}
           </Typography>
         </>
       ) : (
