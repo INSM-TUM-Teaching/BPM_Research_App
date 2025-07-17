@@ -8,10 +8,8 @@ import {
 import { parseISO } from "date-fns";
 import DateTimeRangePicker from "./DateTimeRangePicker";
 import ActivitiesPopover from "./ActivitiesPopover";
-import CasesPopover from "./CasesPopover";
 import AttributePopover from "./AttributePopover";
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import FolderIcon from '@mui/icons-material/Folder';
 import CategoryIcon from '@mui/icons-material/Category';
 import TuneIcon from '@mui/icons-material/Tune';
 import InfoIcon from '@mui/icons-material/Info';
@@ -33,12 +31,10 @@ const EventLog: React.FC = () => {
   
   // States for filters
   const [activityAnchorEl, setActivityAnchorEl] = useState<null | HTMLElement>(null);
-  const [caseAnchorEl, setCaseAnchorEl] = useState<null | HTMLElement>(null);
   const [attributeAnchorEl, setAttributeAnchorEl] = useState<null | HTMLElement>(null);
   const [allActivities, setAllActivities] = useState<string[]>([]);
   const [selectedActivities, setSelectedActivities] = useState<string[]>([]);
-  const [allCaseIds, setAllCaseIds] = useState<string[]>([]);
-  const [selectedCaseIds, setSelectedCaseIds] = useState<string[]>([]);
+
   const [attributeColumns, setAttributeColumns] = useState<string[]>([]);
   const [attributeFilters, setAttributeFilters] = useState<any[]>([]);
   
@@ -59,7 +55,6 @@ const EventLog: React.FC = () => {
   // Filter impact states - tracking records removed at each step
   const [dateRemovedCount, setDateRemovedCount] = useState<number>(0);
   const [activityRemovedCount, setActivityRemovedCount] = useState<number>(0);
-  const [caseRemovedCount, setCaseRemovedCount] = useState<number>(0);
   const [attributeRemovedCount, setAttributeRemovedCount] = useState<number>(0);
 
   const fetchAllEventLogs = async () => {
@@ -206,15 +201,11 @@ const EventLog: React.FC = () => {
     });
 
     const activitiesSet = new Set<string>();
-    const casesSet = new Set<string>();
     let minDate: Date | null = null;
     let maxDate: Date | null = null;
     
     logs.forEach((row: any) => {
       if (row[activityColumn]) activitiesSet.add(String(row[activityColumn]));
-      if (row[caseIdColumn] !== undefined && row[caseIdColumn] !== null) {
-        casesSet.add(String(row[caseIdColumn]));
-      }
       
       // Extract dates - check all potential date fields using mapped time columns
       mapping.timeColumns.forEach(field => {
@@ -234,8 +225,6 @@ const EventLog: React.FC = () => {
     
     setAllActivities(Array.from(activitiesSet) as string[]);
     setSelectedActivities(Array.from(activitiesSet) as string[]);
-    setAllCaseIds(Array.from(casesSet) as string[]);
-    setSelectedCaseIds(Array.from(casesSet) as string[]);
     
     // Set min and max dates for the date range picker
     setMinLogDate(minDate);
@@ -303,7 +292,7 @@ const EventLog: React.FC = () => {
   // Return to page 1 when filters are applied
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedActivities, selectedCaseIds, dateRange, attributeFilters]);
+  }, [selectedActivities, dateRange, attributeFilters]);
 
   // Move the cases calculation to a separate useMemo
   const casesWithExcludedActivities = useMemo(() => {
@@ -374,13 +363,8 @@ const EventLog: React.FC = () => {
     if (!caseIdColumn) return allEventLogs;
     
     return allEventLogs.filter((log) => {
-      // Case check using mapped column
-      const caseId = String(log[caseIdColumn]);
-      const inCase = selectedCaseIds.length === 0 || 
-                    (caseId !== undefined && caseId !== null && 
-                     selectedCaseIds.includes(caseId));
-      
       // For activity filtering, always exclude cases that have excluded activities
+      const caseId = String(log[caseIdColumn]);
       const notInExcludedCases = caseId === undefined || caseId === null || 
                                 !casesWithExcludedActivities.has(caseId);
       
@@ -404,9 +388,9 @@ const EventLog: React.FC = () => {
       }
       
       // Always use case-level filtering for activities and attributes
-      return inCase && inDate && notInExcludedCases && passesAttributes;
+      return inDate && notInExcludedCases && passesAttributes;
     });
-  }, [allEventLogs, dateRange, selectedActivities, selectedCaseIds, casesWithExcludedActivities, attributeFilters, columnMapping]);
+  }, [allEventLogs, dateRange, selectedActivities, casesWithExcludedActivities, attributeFilters, columnMapping]);
 
   // Paginated data
   const pagedLogs = useMemo(() => {
@@ -567,21 +551,6 @@ const EventLog: React.FC = () => {
     }, 600);
   };
 
-  // For cases filter
-  const handleApplyCases = (selected: string[]) => {
-    // First show loading
-    setFilterLoading(true);
-    
-    // Close the popover immediately
-    setCaseAnchorEl(null);
-    
-    // Then apply filter with a delay to ensure loading is visible
-    setTimeout(() => {
-      setSelectedCaseIds(selected);
-      setFilterLoading(false);
-    }, 600); // Longer timeout for visibility
-  };
-
   // Add this handler for date range changes
   const handleDateRangeChange = (newRange: [Date | null, Date | null]) => {
     setFilterLoading(true);
@@ -602,24 +571,11 @@ const EventLog: React.FC = () => {
     }, 600);
   };
 
-  // When opening the cases popover
-  const openCasesPopover = (event: React.MouseEvent<HTMLElement>) => {
-    setCaseAnchorEl(event.currentTarget);
-  };
-
-  // When closing the cases popover
-  const closeCasesPopover = () => {
-    setCaseAnchorEl(null);
-  };
-
   // Add this function just before the return statement in your component
   const isFilterActive = () => {
     // If any filters are active, return true
     const allActivitiesSelected = selectedActivities.length === allActivities.length && 
       allActivities.every(a => selectedActivities.includes(a));
-      
-    const allCasesSelected = selectedCaseIds.length === allCaseIds.length && 
-      allCaseIds.every(c => selectedCaseIds.includes(c));
     
     // Check date range - consider it unfiltered if it's the full range or not set
     let dateRangeIsFullRange = true;
@@ -639,7 +595,7 @@ const EventLog: React.FC = () => {
       }
     });
     
-    return !allActivitiesSelected || !allCasesSelected || !dateRangeIsFullRange || attributeFiltersActive;
+    return !allActivitiesSelected || !dateRangeIsFullRange || attributeFiltersActive;
   };
 
   // Calculate filter impact - tracking records removed at each step
@@ -655,7 +611,6 @@ const EventLog: React.FC = () => {
     let dateRemoved = 0;
     let activityRemoved = 0;
     let attributeRemoved = 0;
-    let caseRemoved = 0;
 
     // Step 1: Apply date filter using mapped time columns
     const [start, end] = dateRange;
@@ -704,24 +659,11 @@ const EventLog: React.FC = () => {
       currentCount = afterActivityFilter.length;
     }
 
-    // Step 4: Apply case filter using mapped column
-    let afterCaseFilter = afterActivityFilter;
-    if (selectedCaseIds.length < allCaseIds.length) {
-      afterCaseFilter = afterActivityFilter.filter(log => {
-        const caseId = String(log[caseIdColumn]);
-        return caseId === undefined || caseId === null || 
-               selectedCaseIds.includes(caseId);
-      });
-      caseRemoved = currentCount - afterCaseFilter.length;
-    }
-
     // Update states
     setDateRemovedCount(dateRemoved);
     setActivityRemovedCount(activityRemoved);
-    setAttributeRemovedCount(attributeRemoved);
-    setCaseRemovedCount(caseRemoved);
-  }, [allEventLogs, dateRange, selectedActivities, selectedCaseIds, 
-      allActivities, allCaseIds, casesWithExcludedActivities, attributeFilters, passesAttributeFilters, columnMapping]);
+    setAttributeRemovedCount(attributeRemoved);  }, [allEventLogs, dateRange, selectedActivities, 
+      allActivities, casesWithExcludedActivities, attributeFilters, passesAttributeFilters, columnMapping]);
 
   return (
     <div style={{ height: "100vh", display: "flex", flexDirection: "column", padding: "16px" }}>
@@ -770,34 +712,6 @@ const EventLog: React.FC = () => {
               Activities {selectedActivities.length !== allActivities.length ? ` (${selectedActivities.length}/${allActivities.length})` : ''}
             </Button>
             {filterLoading && activityAnchorEl === null && (
-              <Box 
-                position="absolute" 
-                top="0" 
-                left="0" 
-                width="100%" 
-                height="100%" 
-                display="flex" 
-                alignItems="center" 
-                justifyContent="center"
-                bgcolor="rgba(255,255,255,0.7)"
-                borderRadius={1}
-                zIndex={5}
-              >
-                <CircularProgress size={20} />
-              </Box>
-            )}
-          </Box>
-
-          {/* Cases button with loading indicator */}
-          <Box position="relative" display="inline-block" sx={{ mr: 1, mb: 1 }}>
-            <Button
-              variant="outlined"
-              onClick={(e) => setCaseAnchorEl(e.currentTarget)}
-              startIcon={<FolderIcon />}
-            >
-              Cases {selectedCaseIds.length !== allCaseIds.length ? ` (${selectedCaseIds.length}/${allCaseIds.length})` : ''}
-            </Button>
-            {filterLoading && caseAnchorEl === null && (
               <Box 
                 position="absolute" 
                 top="0" 
@@ -911,7 +825,6 @@ const EventLog: React.FC = () => {
                     if (dateRemovedCount > 0) details.push(`Time filter reduced records by ${dateRemovedCount}.`);
                     if (attributeRemovedCount > 0) details.push(`Attribute filter reduced records by ${attributeRemovedCount}.`);
                     if (activityRemovedCount > 0) details.push(`Activity filter reduced records by ${activityRemovedCount}.`);
-                    if (caseRemovedCount > 0) details.push(`Case filter reduced records by ${caseRemovedCount}.`);
                     return details.length > 0 ? details.join(' ') : 'No records removed.';
                   })()}
                 </div>
@@ -1158,17 +1071,7 @@ const EventLog: React.FC = () => {
         onClose={() => setActivityAnchorEl(null)}
         onApply={handleApplyActivities}
         activityUsageData={activityUsage}
-        allCaseIds={allCaseIds}
         caseIdColumnName={columnMapping?.caseId || "case_id"}
-      />
-
-      <CasesPopover
-        open={Boolean(caseAnchorEl)}
-        anchorEl={caseAnchorEl}
-        cases={allCaseIds}
-        selected={selectedCaseIds}
-        onClose={() => setCaseAnchorEl(null)}
-        onApply={handleApplyCases}
       />
 
       <AttributePopover
