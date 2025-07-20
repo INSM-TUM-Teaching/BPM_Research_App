@@ -688,7 +688,7 @@ const ResultsPage: React.FC = () => {
           </Typography>
         </Alert>
       </Box>
-
+      
       {/* Final BPMN Model Viewer */}
       {bpmnPath && (
         <Card elevation={4} sx={{ mb: 4 }}>
@@ -824,6 +824,98 @@ const ResultsPage: React.FC = () => {
         </Card>
       )}
 
+      {/* Control Flow Parameters*/}
+      <Card elevation={4} sx={{ mb: 4 }}>
+        <CardContent>
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+            <AnalyticsIcon sx={{ fontSize: 30, color: 'primary.main', mr: 2 }} />
+            <Typography variant="h5" component="h2" sx={{ fontWeight: 'bold' }}>
+              Control Flow Parameters
+            </Typography>
+          </Box>
+          <Divider sx={{ mb: 3 }} />
+          {uploadedParamsError && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {uploadedParamsError}
+            </Alert>
+          )}
+          {!uploadedParams && !uploadedParamsError && (
+            <Typography color="text.secondary">No uploaded parameters available.</Typography>
+          )}
+          {uploadedParams && (
+            <Box sx={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+              gap: 3,
+              mb: 3
+            }}>
+              {[
+                {
+                  label: "Mining Algorithm",
+                  value: uploadedParams.mining_algorithm,
+                  color: "primary.main",
+                },
+                {
+                  label: "Epsilon",
+                  value: uploadedParams.epsilon,
+                  color: "success.main",
+                },
+                {
+                  label: "Eta",
+                  value: uploadedParams.eta,
+                  color: "info.main",
+                },
+                {
+                  label: "Prioritize Parallelism",
+                  value: uploadedParams.prioritize_parallelism,
+                  color: "warning.main",
+                },
+                {
+                  label: "Replace OR Joins",
+                  value: uploadedParams.replace_or_joins,
+                  color: "error.main",
+                  
+                }
+              ].map((param, idx) => (
+                <Card key={idx} elevation={3} sx={{
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    elevation: 6,
+                    transform: 'translateY(-2px)'
+                  }
+                }}>
+                  <CardContent sx={{ p: 3 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                      <Typography
+                        variant="h6"
+                        sx={{
+                          fontWeight: 'bold',
+                          ml: 1,
+                          color: param.color
+                        }}
+                      >
+                        {param.label}
+                      </Typography>
+                    </Box>
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        fontWeight: 'bold',
+                        mb: 1,
+                        color: 'text.primary',
+                        textAlign: 'center'
+                      }}
+                    >
+                      {param.value}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              ))}
+            </Box>
+          )}
+        </CardContent>
+      </Card>
+      
       {/* Overall Scenario Statistics */}
       {/* Simulation Parameters Result */}
       <Card elevation={4} sx={{ mb: 4 }}>
@@ -1457,98 +1549,6 @@ const ResultsPage: React.FC = () => {
                   </Card>
                 );
               })}
-            </Box>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Control Flow Parameters*/}
-      <Card elevation={4} sx={{ mb: 4 }}>
-        <CardContent>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-            <AnalyticsIcon sx={{ fontSize: 30, color: 'primary.main', mr: 2 }} />
-            <Typography variant="h5" component="h2" sx={{ fontWeight: 'bold' }}>
-              Control Flow Parameters
-            </Typography>
-          </Box>
-          <Divider sx={{ mb: 3 }} />
-          {uploadedParamsError && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {uploadedParamsError}
-            </Alert>
-          )}
-          {!uploadedParams && !uploadedParamsError && (
-            <Typography color="text.secondary">No uploaded parameters available.</Typography>
-          )}
-          {uploadedParams && (
-            <Box sx={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-              gap: 3,
-              mb: 3
-            }}>
-              {[
-                {
-                  label: "Mining Algorithm",
-                  value: uploadedParams.mining_algorithm,
-                  color: "primary.main",
-                },
-                {
-                  label: "Epsilon",
-                  value: uploadedParams.epsilon,
-                  color: "success.main",
-                },
-                {
-                  label: "Eta",
-                  value: uploadedParams.eta,
-                  color: "info.main",
-                },
-                {
-                  label: "Prioritize Parallelism",
-                  value: uploadedParams.prioritize_parallelism,
-                  color: "warning.main",
-                },
-                {
-                  label: "Replace OR Joins",
-                  value: uploadedParams.replace_or_joins,
-                  color: "error.main",
-                  
-                }
-              ].map((param, idx) => (
-                <Card key={idx} elevation={3} sx={{
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    elevation: 6,
-                    transform: 'translateY(-2px)'
-                  }
-                }}>
-                  <CardContent sx={{ p: 3 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                      <Typography
-                        variant="h6"
-                        sx={{
-                          fontWeight: 'bold',
-                          ml: 1,
-                          color: param.color
-                        }}
-                      >
-                        {param.label}
-                      </Typography>
-                    </Box>
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        fontWeight: 'bold',
-                        mb: 1,
-                        color: 'text.primary',
-                        textAlign: 'center'
-                      }}
-                    >
-                      {param.value}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              ))}
             </Box>
           )}
         </CardContent>
