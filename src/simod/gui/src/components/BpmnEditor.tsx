@@ -3,15 +3,12 @@ import Modeler from "bpmn-js/lib/Modeler";
 import { useParams, useNavigate } from "react-router-dom";
 
 
-// ────────────────────────────────────────────────────────────────────────────────
-// BPMN‑JS STYLES – üçü de lazım
-import "bpmn-js/dist/assets/diagram-js.css"; // temel diyagram
-import "bpmn-js/dist/assets/bpmn-js.css"; // palette + context pad
-import "bpmn-js/dist/assets/bpmn-font/css/bpmn.css"; // ikon fontu
 
-// ────────────────────────────────────────────────────────────────────────────────
+import "bpmn-js/dist/assets/diagram-js.css"; 
+import "bpmn-js/dist/assets/bpmn-js.css"; 
+import "bpmn-js/dist/assets/bpmn-font/css/bpmn.css"; 
 
-// Başlangıç diyagramı (boş bırakabilirsiniz)
+
 const DEFAULT_DIAGRAM = `<?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_0q1u91e" targetNamespace="http://bpmn.io/schema/bpmn">
   <bpmn:process id="Process_1" isExecutable="false" />
@@ -26,11 +23,11 @@ const BpmnEditor: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [, forceUpdate] = useState(0);
 
-  // ────────────────────────── MODELER LIFECYCLE ──────────────────────────
+
   useEffect(() => {
     modelerRef.current = new Modeler({
       container: containerRef.current!,
-      keyboard: { bindTo: window }, // klavye kısayolları tüm pencere için
+      keyboard: { bindTo: window }, 
     });
 
     const loadDiagram = async () => {
@@ -55,7 +52,6 @@ const BpmnEditor: React.FC = () => {
     };
   }, []);
 
-  // ────────────────────────────── HANDLERS ──────────────────────────────
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -90,7 +86,6 @@ const BpmnEditor: React.FC = () => {
     }
   };
 
-  // ─────────────────────────────── RENDER ────────────────────────────────
   return (
     <div
       style={{
@@ -100,7 +95,6 @@ const BpmnEditor: React.FC = () => {
         margin: 0,
       }}
     >
-      {/* ÜST BAR */}
       <div style={{ padding: 8 }}>
         <input
           type="file"
@@ -111,7 +105,7 @@ const BpmnEditor: React.FC = () => {
           className="px-3 py-1 border rounded"
           onClick={handleDownload}
         >
-          Kaydet
+          Save
         </button>
       </div>
       <div
