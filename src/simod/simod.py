@@ -355,6 +355,7 @@ class Simod:
         self._send_final_bpmn_path_to_server(self.final_bps_model.process_model)
         
         # --- Running Prosimos --- #
+        #anisha: integrate prosimos in SIMOD
         print_section("Running best results with Prosimos")
         import os
         import subprocess
@@ -390,7 +391,7 @@ class Simod:
             print("Prosimos error (stderr):\n", e.stderr)
             print("Prosimos failed\n", e.stderr)
 
-    
+    #anisha: send model info to GUI
     def _send_final_bpmn_path_to_server(self, bpmn_path: Path):
         """
         Sends the path of the best BPMN model to the FastAPI server.
@@ -417,6 +418,7 @@ class Simod:
         except Exception as e:
             print(f"An unexpected error occurred while sending final BPMN path to the server: {e}")
     
+    #anisha: send prosimos info to GUI
     def _send_final_prosimos_stats_to_server(self, stat_path: str, log_path: str):
         """
         Reads the final Prosimos statistics and sends them to the FastAPI server.
