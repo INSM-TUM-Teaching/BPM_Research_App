@@ -28,7 +28,7 @@ common:
   # test_log_path: ../event_logs/LoanApp_simplified_test.csv.gz
   # Whether to discover case attributes or not
   discover_data_attributes: false
-  clean_intermediate_files: false
+  clean_intermediate_files: false   #anisha: to track intermediate files
 #################
 # Preprocessing #
 #################
@@ -50,12 +50,12 @@ control_flow:
   # Discover process model with SplitMiner v3
   mining_algorithm: sm1
   # Number of concurrent relations between events to be captured
-  epsilon:
-    - 0.01
+  epsilon: 
+    - 0.01 #anisha: structural diversity for initial models
     - 0.9
   # Threshold for filtering the incoming and outgoing edges
   eta:
-    - 0.05
+    - 0.05  #anisha: structural diversity for initial models
     - 0.95
   # Whether to replace non-trivial OR joins or not
   replace_or_joins:
