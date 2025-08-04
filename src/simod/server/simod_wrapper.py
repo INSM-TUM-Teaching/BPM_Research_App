@@ -387,12 +387,26 @@ def _run_simod_process(config_path, event_log_path, additional_args):
         if not temp_config_path:
             raise RuntimeError("Could not create temporary configuration file.")
         
+        # Get the project root directory (BPM_Research_App)
+        script_dir = Path(_file_).parent  # src/simod/server/
+        project_root = script_dir.parent.parent.parent  # BPM_Research_App/
+        src_path = project_root / "src"
+        
+        # Set PYTHONPATH to include src directory
+        env = os.environ.copy()
+        current_pythonpath = env.get('PYTHONPATH', '')
+        if current_pythonpath:
+            env['PYTHONPATH'] = f"{src_path}{os.pathsep}{current_pythonpath}"
+        else:
+            env['PYTHONPATH'] = str(src_path)
+        
         cmd = [sys.executable, "-m", "simod.cli", "--configuration", str(temp_config_path)]
         if additional_args:
             cmd.extend([arg for arg in additional_args if not arg.startswith('--event-log')])
 
         print(f"Executing: {' '.join(cmd)}")
-        exit_code = subprocess.call(cmd)
+        print(f"PYTHONPATH set to: {env['PYTHONPATH']}")
+        exit_code = subprocess.call(cmd, env=env)
         print(f"\nSimod execution completed with exit code: {exit_code}")
 
     except Exception as e:

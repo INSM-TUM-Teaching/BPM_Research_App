@@ -1,5 +1,4 @@
 # Topic 3: Augmenting an Automated ML-based Simulation Discovery Tool with Human Expertise
-# Simod: Automated discovery of business process simulation models
 
 ![Simod](https://github.com/AutomatedProcessImprovement/Simod/actions/workflows/simod.yml/badge.svg)
 ![version](https://img.shields.io/github/v/tag/AutomatedProcessImprovement/simod)
@@ -16,61 +15,103 @@ the [Prosimos](https://github.com/AutomatedProcessImprovement/Prosimos) simulato
 
 ### Required
 
-| Dependency | Version | Notes                                                                                                                                          |
-|------------|---------|------------------------------------------------------------------------------------------------------------------------------------------------|
-| Python     | 3.9     | For Windows, [Python 3.9.13](https://www.python.org/downloads/release/python-3913/) is the last distribution with Windows installers.          |
-| Java       | 1.8     | For example, use [Amazon Corretto 8](https://docs.aws.amazon.com/corretto/latest/corretto-8-ug/downloads-list.html).                           |
-| Poetry     | latest  | If using Docker or compiling from source, use [Poetry](https://python-poetry.org/) for building, installing, and managing Python dependencies. |
+| Dependency | Version | Notes                                                                                                                                 |
+| ---------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Python     | 3.9     | For Windows, [Python 3.9.13](https://www.python.org/downloads/release/python-3913/) is the last distribution with Windows installers. |
+| Java       | 1.8     | For example, use [Amazon Corretto 8](https://docs.aws.amazon.com/corretto/latest/corretto-8-ug/downloads-list.html).                  |
+| Node.js    | 16+     | Required for the React GUI frontend. Download from [nodejs.org](https://nodejs.org/).                                                 |
 
-### Optional
+## Project Structure
 
-Depending on your CPU architecture, some dependencies might not be pre-compiled for your platform. In that case, you
-will most likely also need the following dependencies:
+This project contains several key components:
 
-| Dependency     | Version | Notes                                            |
-|----------------|---------|--------------------------------------------------|
-| Cargo and Rust | latest  | Install it with [rustup.rs](https://rustup.rs/). |
+- **`src/simod/`** - Core Simod library and algorithms
+- **`src/simod/gui/`** - React.js frontend for web-based GUI
+- **`src/simod/server/`** - FastAPI backend server and wrapper scripts
+- **`resources/`** - Sample configurations and event logs
+- **`tests/`** - Unit and integration tests
+- **`docs/`** - Documentation source files
 
 ## Getting Started
 
-### PyPI
+### Simod with GUI
 
-❗️Make sure `java -version` returns `1.8` and `pip` is installed.
+This project includes a modern web-based graphical user interface for easier interaction with Simod.
 
-Then, install Simod and run it with the following commands:
+#### Prerequisites
+
+❗️Make sure the following are installed:
+
+- `java -version` returns `1.8`
+- `python` 3.9+ is installed with `pip`
+- `node.js` and `npm` are installed for the React frontend
+
+#### Quick Start with GUI
+
+1. **Install all Python dependencies** (including Simod):
+
+   ```shell
+   pip install -r requirements.txt
+   ```
+
+2. **Install React dependencies**:
+
+   ```shell
+   cd src/simod/gui
+   npm install
+   cd ../../..
+   ```
+
+3. **Start the full application** (backend + frontend):
+
+   ```shell
+   # On Linux/macOS
+   ./start_all.sh
+
+   # On Windows (manually start both components)
+   # Terminal 1: Start the React frontend
+   cd src/simod/gui
+   npm start
+
+   # Terminal 2: Start the Python backend
+   cd src/simod/server
+   python simod_wrapper.py --configuration configuration_test.yml
+   ```
+
+4. **Access the Web Interface**:
+
+   - The React frontend will be available at `http://localhost:3000`
+   - The FastAPI backend will be available at `http://localhost:8000`
+
+5. **Using the GUI**:
+   - Upload your event log CSV file through the web interface
+   - Filter and configure your data interactively
+   - View BPMN models and simulation results in the browser
+
+#### Manual Setup
+
+If you prefer to start components separately:
+
+**Frontend (React GUI):**
 
 ```shell
-pip install simod
-simod --configuration resources/config/configuration_example.yml
+cd src/simod/gui
+npm install        # Install dependencies
+npm start          # Start development server (http://localhost:3000)
 ```
 
-Use your own configuration file instead of `resources/config/configuration_example.yml` and specify the path to the
-event log in the configuration file itself. Paths are relative to the configuration file, or absolute.
-
-PyPI project is available at https://pypi.org/project/simod/.
-
-### Docker
+**Backend (FastAPI Server):**
 
 ```shell
-docker pull nokal/simod
+# First install dependencies
+pip install -r requirements.txt
+
+# Then start the server
+cd src/simod/server
+python server.py             # Start API server (http://localhost:8000)
+# OR
+python simod_wrapper.py --configuration path/to/config.yml
 ```
-
-To start a container:
-
-```shell
-docker run -it -v /path/to/resources/:/usr/src/Simod/resources -v /path/to/output:/usr/src/Simod/outputs nokal/simod bash
-```
-
-Use the `resources` directory to store event logs and configuration files. The `outputs` directory will contain the
-results of Simod.
-
-From inside the container, you can run Simod with:
-
-```shell
-poetry run simod --configuration <path-to-config>
-```
-
-Docker images for different Simod versions are available at https://hub.docker.com/r/nokal/simod/tags.
 
 ## Configuration file
 
@@ -94,43 +135,29 @@ of each element:
 
 ## For developers
 
+To install all dependencies for development:
+
+```shell
+pip install -r requirements.txt
+```
+
 To install package in editable mode:
 
 ```shell
 pip install -e .
 ```
-To install package for API requests and responses:
-```shell
-pip install fastapi uvicorn
-```
 
-To run the file without simod package:
+To start the web GUI development environment:
 
 ```shell
-PYTHONPATH=src python -m simod.cli -c resources/config/configuration_example.yml
+cd src/simod/gui
+npm install
+npm start
 ```
 
-### Testing
-
-Use `pytest` to run tests on the package:
+To start the API server:
 
 ```shell
-poetry run pytest
+cd src/simod/server
+python server.py
 ```
-
-To run unit tests, execute:
-
-```shell
-poetry run pytest -m "not integration"
-```
-
-Coverage:
-
-```shell
-poetry run pytest -m "not integration" --cov=simod
-```
-
-### Documentation
-
-For more details about the installation, usage, and implementation **visit the documentation here:**  
-📖 ️ [https://simod.readthedocs.io/en/latest/](https://simod.readthedocs.io/en/latest/)
