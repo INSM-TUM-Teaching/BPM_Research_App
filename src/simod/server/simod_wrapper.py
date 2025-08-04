@@ -293,7 +293,7 @@ def send_event_log_to_api(log_path):
 #         # Catch any other unexpected errors during the process
 #         print(f"[UPLOADER-CRITICAL-ERROR] An unexpected error occurred: {e}")
 #         return False
-
+#anisha: Event log upload
 def wait_for_upload():
     """Waits for the user to upload a file via the web interface."""
     max_wait_minutes = 30
