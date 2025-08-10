@@ -388,7 +388,7 @@ def _run_simod_process(config_path, event_log_path, additional_args):
             raise RuntimeError("Could not create temporary configuration file.")
         
         # Get the project root directory (BPM_Research_App)
-        script_dir = Path(_file_).parent  # src/simod/server/
+        script_dir = Path(__file__).parent  # src/simod/server/
         project_root = script_dir.parent.parent.parent  # BPM_Research_App/
         src_path = project_root / "src"
         
