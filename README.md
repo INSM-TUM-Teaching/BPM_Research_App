@@ -59,14 +59,9 @@ This project includes a modern web-based graphical user interface for easier int
    ```shell
    cd src/simod/gui
    npm install
-   cd ../../..
    ```
 
 3. **Start the full application** (backend + frontend):
-
-   ```shell
-   # On Linux/macOS
-   ./start_all.sh
 
    # On Windows (manually start both components)
    # Terminal 1: Start the React frontend
