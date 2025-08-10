@@ -69,6 +69,7 @@ This project includes a modern web-based graphical user interface for easier int
    npm start
 
    # Terminal 2: Start the Python backend
+   ```shell
    cd src/simod/server
    python simod_wrapper.py --configuration configuration_test.yml
    ```
