@@ -63,12 +63,14 @@ This project includes a modern web-based graphical user interface for easier int
 
 3. **Start the full application** (backend + frontend):
 
-   # On Windows (manually start both components)
    # Terminal 1: Start the React frontend
+   ```shell
    cd src/simod/gui
    npm start
+   ```
 
    # Terminal 2: Start the Python backend
+   ```shell
    cd src/simod/server
    python simod_wrapper.py --configuration configuration_test.yml
    ```
@@ -83,30 +85,6 @@ This project includes a modern web-based graphical user interface for easier int
    - Filter and configure your data interactively
    - View BPMN models and simulation results in the browser
 
-#### Manual Setup
-
-If you prefer to start components separately:
-
-**Frontend (React GUI):**
-
-```shell
-cd src/simod/gui
-npm install        # Install dependencies
-npm start          # Start development server (http://localhost:3000)
-```
-
-**Backend (FastAPI Server):**
-
-```shell
-# First install dependencies
-pip install -r requirements.txt
-
-# Then start the server
-cd src/simod/server
-python server.py             # Start API server (http://localhost:8000)
-# OR
-python simod_wrapper.py --configuration path/to/config.yml
-```
 
 ## Configuration file
 
