@@ -1,3 +1,6 @@
+simod
+fastapi
+uvicorn[standard]>=0.15.0
 click==8.1.8
 hyperopt==0.2.7
 lxml==5.3.0
@@ -22,5 +25,4 @@ openxes-cli-py==0.1.15
 pix-framework==0.13.17
 log-distance-measures==2.0.2
 sphinx-rtd-theme
-fastapi
 poetry
