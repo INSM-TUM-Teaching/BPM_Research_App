@@ -37,8 +37,10 @@ import sys
 # Add the parent directory of `src` (i.e., BPM_Research_App) to the path so that we can import the FastAPI app from server.py
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../')))
 
+# Yehan: FastAPI server Integration to Control Flow
 # Import FastAPI app
 from ..server.server import app
+
 
 class ControlFlowOptimizer:
     """
@@ -256,6 +258,7 @@ class ControlFlowOptimizer:
         print_message("------------------------------------------------------------------")
         print_message("✅ Selecting models with lowest, mid-point, and highest loss values")
         print_message("------------------------------------------------------------------")
+        #Yehan: Extract loss values and candidate BPMNs
         ok_results = results[results.status == STATUS_OK].sort_values("loss").reset_index(drop=True)
         num_ok_results = len(ok_results)
         selected_models_df = pd.DataFrame()
@@ -276,6 +279,7 @@ class ControlFlowOptimizer:
             print_message("⚠️ No successful optimization iterations found to select from.")
         
         # Assign the final selection to the variable the rest of the code uses
+        #Yehan: Saving the top 3 results
         top_3_ok_results = selected_models_df
 
         # Save DataFrame to output folder
@@ -285,7 +289,7 @@ class ControlFlowOptimizer:
         output_file = self.base_directory / "control_flow_optimization_results.csv"
         top_3_ok_results.to_csv(output_file, index=False)
 
-
+        # Yehan: Sending top 3 results to the GUI
         # POST the results to an external endpoint for GUI display and find best 3 BPMN model paths
         try:
             # Prepare results for sending via POST
@@ -318,7 +322,7 @@ class ControlFlowOptimizer:
             print_message("-----------------------------------------------------------")            
             print_message(f"❌ Error sending top 3 results to the GUI: {e}")
             print_message("-----------------------------------------------------------")
-
+        # Yehan: Expert-Guided Best BPMN Model Selection via API - Polling for selection
         # Expert-Guided Best BPMN Model Selection via API
         print_message("-------------------------------------------------------")
         print_message("⏳ Waiting for expert to select a BPMN model via API...")
@@ -369,7 +373,7 @@ class ControlFlowOptimizer:
                 print_message("------------------------------------")
                 time.sleep(5)
         
-        # Validate selection
+        # Yehan: Validate selection
         assert selected_model_path.exists(), f"Selected model path {selected_model_path} does not exist"
 
         # Selecting the best result based on expert's selection 
@@ -379,7 +383,8 @@ class ControlFlowOptimizer:
         # Ensure there's an exact match
         if matching_rows.empty:
             raise ValueError(f"No matching process model found in top 3 results for: {selected_model_path}")
-
+        
+        #Yehan: Assigning the selection to be used in the rest of the code
         # Assign the matched row as best_result
         best_result = matching_rows.iloc[0]
 

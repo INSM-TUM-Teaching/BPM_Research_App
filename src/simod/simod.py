@@ -342,6 +342,7 @@ class Simod:
         print_section(f"Exporting canonical model, runtimes, settings and cleaning up intermediate files")
         canonical_model_path = self._best_result_dir / "canonical_model.json"
         # Declaring the post URL for the canonical model export to the FastAPI server
+        #Yehan: Exporting the control flow parameters to the GUI
         post_url = "http://localhost:8000/api/upload-canonical-model/"
         _export_canonical_model(canonical_model_path, best_control_flow_params, best_resource_model_params, post_url=post_url)
         runtimes_model_path = self._best_result_dir / "runtimes.json"
@@ -530,7 +531,7 @@ class Simod:
             final_xes_log_path = self._best_result_dir / f"{self._event_log.process_name}_train_val.xes"
             remove_asset(final_xes_log_path)
 
-
+#Yehan: Exporting the control flow parameters to the GUI
 def _export_canonical_model(
     file_path: Path,
     control_flow_settings,
@@ -572,6 +573,7 @@ def _export_canonical_model(
             print(f"Failed to send canonical model to {post_url}: {e}")
             print_message("------------------------------------------")
 
+#Yehan: Sending the simulation parameters to the GUI
 def send_simulation_parameters_json(
     json_data: dict,
     post_url: str

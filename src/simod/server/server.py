@@ -104,10 +104,11 @@ def import_auto_bpmn_layout():
             raise HTTPException(status_code=500, detail="Auto layout functionality not available")
         return create_layout_bpmn
 
+# Yehan: Integration of Front End and Backend under single FastAPI app (Refactored this file and created state reset APIs)
 app = FastAPI()
 
 ########## API ENDPOINTS - SIMOD CONTROL FLOW ##########
-
+#Yehan: APIs for sending top to results to GUI
 # Variables for top-3 results
 top_3_results: Optional[List[Dict]] = None
 
@@ -235,6 +236,7 @@ def serve_bpmn_with_layout(file_path: str):
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Failed to process BPMN file: {str(e)}")
 
+# Yehan: APIs for selecting the best model
 # Variables for best model selection
 selected_model_path: Optional[Path] = None
 
@@ -264,7 +266,7 @@ def reset_selected_model():
     return {"message": "Selection reset"}
 
 ########## API ENDPOINTS - EXPORTING SIMULATION DATA ##########
-
+#Yehan: APIs for sending control flow parameters to GUI
 #### ENDPOINTS FOR EXPORTING CANONICAL MODEL ####
 
 # In-memory storage for the canonical model JSON
@@ -291,6 +293,7 @@ def reset_canonical_model():
     canonical_model_data = None
     return {"message": "Canonical model data has been reset."}
 
+# Yehan: APIs for sending simulation parameters to GUI
 ##### ENDPOINTS FOR EXPORTING SIMULATION DATA #####
 
 # Simulation parameters memory store

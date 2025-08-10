@@ -1,4 +1,4 @@
-// src/components/LoadingScreen.tsx
+//Yehan: Loading screen after event log upload and before top-3 results display
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { CircularProgress, Typography, Box } from "@mui/material";
